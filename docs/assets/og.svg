@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace" role="img" aria-label="proactive-gate: two decisions from one replay. Candidate a1 rejected by quietHours; candidate a5 allowed on push and feed.">
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <rect x="0" y="0" width="1200" height="8" fill="#111111"/>
+
+  <text x="64" y="108" font-size="42" font-weight="700" fill="#111111">proactive-gate</text>
+  <text x="64" y="152" font-size="21" fill="#6b6b6b" xml:space="preserve">Your model decides what to say. This decides whether it may say it now.</text>
+  <line x1="64" y1="186" x2="1136" y2="186" stroke="#e2e2e2"/>
+
+  
+  <g>
+    <rect x="64" y="216" width="520" height="232" rx="4" fill="#fafafa" stroke="#e2e2e2"/>
+    <text x="90" y="258" font-size="13" fill="#6b6b6b" xml:space="preserve">candidate a1   user ayse   8 checks</text>
+    <text x="90" y="300" font-size="20" font-weight="600" fill="#b3261e" xml:space="preserve">✗ rejected by quietHours</text>
+    <text x="90" y="342" font-size="15" fill="#6b6b6b" xml:space="preserve">quiet hours 22:00 to 08:00 (thu 2026-09-03)</text>
+    <text x="90" y="367" font-size="15" fill="#6b6b6b" xml:space="preserve">Europe/Istanbul; priority normal is below the floor</text>
+    <text x="90" y="392" font-size="15" fill="#6b6b6b" xml:space="preserve">(high)</text>
+  </g>
+  
+  <g>
+    <rect x="616" y="216" width="520" height="232" rx="4" fill="#fafafa" stroke="#e2e2e2"/>
+    <text x="642" y="258" font-size="13" fill="#6b6b6b" xml:space="preserve">candidate a5   user ayse   13 checks</text>
+    <text x="642" y="300" font-size="20" font-weight="600" fill="#1b6e3a" xml:space="preserve">✓ allowed → push, feed</text>
+    <text x="642" y="342" font-size="15" fill="#1b6e3a" xml:space="preserve">✓ dismissalCooldown   pass</text>
+    <text x="642" y="367" font-size="15" fill="#1b6e3a" xml:space="preserve">✓ adaptiveTiming      pass</text>
+    <text x="642" y="392" font-size="15" fill="#1b6e3a" xml:space="preserve">✓ dailyBudget         pass</text>
+  </g>
+
+  <line x1="64" y1="486" x2="1136" y2="486" stroke="#e2e2e2"/>
+  <text x="64" y="524" font-size="14" fill="#6b6b6b" xml:space="preserve">$ npx proactive-gate replay examples/day.jsonl --policy examples/policy.json --commit</text>
+  <text x="64" y="562" font-size="14" fill="#6b6b6b" xml:space="preserve">Ordered checks · a named reason on every suppression · budgets spent at commit</text>
+  <text x="64" y="588" font-size="14" fill="#6b6b6b" xml:space="preserve">Zero dependencies · TypeScript and Python on one set of fixtures · MIT</text>
+</svg>

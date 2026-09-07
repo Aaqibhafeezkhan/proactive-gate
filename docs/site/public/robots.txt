@@ -1,0 +1,6 @@
+# The sitemap is generated at build time by Astro; without this file nothing points a crawler
+# at it, because Starlight emits sitemap-index.xml and no robots.txt of its own.
+User-agent: *
+Allow: /
+
+Sitemap: https://bubblegunn.github.io/proactive-gate/sitemap-index.xml
