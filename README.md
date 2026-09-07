@@ -49,9 +49,10 @@ platform and legal presets and the four frameworks.
 
 If you would rather see the argument than read it: `npm run bench:compare` replays a
 committed day through this gate and through five hand-written `if` statements, and prints
-the six places they disagree: a daylight-saving boundary, a budget keyed to the wrong day,
-and two sends taking the last slot at once. The output, and why none of the six is a matter
-of taste, is in [Compared with hand-rolled checks](#compared-with-hand-rolled-checks-and-feature-flags).
+the six places they disagree: a critical alert the cap should have let through, a two-day-old
+account, a snooze, a run of dismissals, and a local day boundary that silences one user and
+pays another twice. The output, and why none of the six is a matter of taste, is in
+[Compared with hand-rolled checks](#compared-with-hand-rolled-checks-and-feature-flags).
 
 Zero dependencies. TypeScript. Node 20 or newer. Framework-agnostic: the gate sits
 between "the model produced something" and "the user's phone buzzed", whichever

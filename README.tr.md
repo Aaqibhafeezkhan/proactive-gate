@@ -38,8 +38,9 @@ Sıfır bağımlılık. TypeScript. Node 20 ya da üstü. Framework'ten bağıms
 [`python/`](python/README.md).
 
 Okumak yerine görmeyi tercih ederseniz: `npm run bench:compare`, kayıtlı bir günü hem bu kapıdan
-hem de elle yazılmış beş `if` ifadesinden geçirir ve ayrıştıkları altı yeri yazdırır: bir yaz saati
-sınırı, yanlış güne bağlanmış bir bütçe, ve son kotayı aynı anda alan iki gönderim. Altısının da
+hem de elle yazılmış beş `if` ifadesinden geçirir ve ayrıştıkları altı yeri yazdırır: kotanın
+geçirmesi gereken kritik bir uyarı, iki günlük bir hesap, bir erteleme, arka arkaya gelen
+reddedişler, ve bir kullanıcıyı susturup bir diğerine iki kat mesaj veren yerel gün sınırı. Altısının da
 neden zevk meselesi olmadığı, bu dosyanın kısaltılmış olması nedeniyle yalnızca İngilizce
 README'de anlatılıyor: [Compared with hand-rolled
 checks](README.md#compared-with-hand-rolled-checks-and-feature-flags).
