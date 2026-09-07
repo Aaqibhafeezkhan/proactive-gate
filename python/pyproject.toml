@@ -10,7 +10,11 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{ name = "Efe Genc" }]
-keywords = ["proactive", "notifications", "agents", "rate-limit", "quiet-hours", "policy"]
+keywords = [
+  "proactive", "proactive-ai", "proactive-agents", "ai-agents", "llm", "agents",
+  "notifications", "notification-policy", "notification-budget", "quiet-hours",
+  "consent", "rate-limit", "policy", "policy-engine", "guardrails", "interruption",
+]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -18,8 +22,12 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3 :: Only",
   "Framework :: AsyncIO",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
   "Topic :: Software Development :: Libraries",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
   "Topic :: Communications",
   "Typing :: Typed",
 ]
@@ -31,6 +39,8 @@ dev = ["pytest>=8", "mypy>=1.11", "redis>=5"]
 
 [project.urls]
 Homepage = "https://bubblegunn.github.io/proactive-gate/"
+Documentation = "https://bubblegunn.github.io/proactive-gate/start/"
+Playground = "https://bubblegunn.github.io/proactive-gate/playground/"
 Repository = "https://github.com/Bubblegunn/proactive-gate"
 Issues = "https://github.com/Bubblegunn/proactive-gate/issues"
 Specification = "https://github.com/Bubblegunn/proactive-gate/tree/main/spec"
