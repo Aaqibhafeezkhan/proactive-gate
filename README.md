@@ -563,6 +563,15 @@ candidates with the clock taken from each line, and `node examples/ai-sdk/run.mj
 day of tool-approval requests, one of which is a critical alert that a legal window (the TCPA
 preset) still refuses. Both are part of `npm run examples` and of the test suite.
 
+The other four, the `.ts` files, are illustrations rather than fixtures: they import
+`@langchain/langgraph`, `@mastra/core` and the AI SDK, none of which is a dependency here, so
+they are neither compiled nor executed and this README does not claim they are. What *is*
+checked is the half we control: `test/example-imports.test.mjs` asserts that every symbol they
+import from `proactive-gate` still exists, as a value or as a type, so renaming an export
+cannot leave a published snippet quietly telling readers to import something that is gone. It
+cannot tell you a framework changed its own API, and installing four agent frameworks to
+type-check four snippets is a worse trade than saying which files are executed.
+
 ## Python
 
 ```
