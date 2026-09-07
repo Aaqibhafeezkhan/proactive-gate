@@ -3,28 +3,44 @@ import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
 
-<StarlightPage frontmatter={{ title: "Playground", description: "Run a JSON policy against an input in the browser. Nothing leaves the page." }}>
+<StarlightPage frontmatter={{ title: "Playground", description: "Watch the same message be delivered, deferred and stopped, and see which check decided. Runs the real package in your browser; nothing leaves the page." }}>
   <p>
-    The real package, bundled for the browser with an in-memory store. Edit the policy or the
-    input and press Run; the trace shows every check that ran and highlights the one that stopped
-    the message.
+    The real package, bundled for the browser with an in-memory store. Nothing is sent anywhere and
+    there is no key to enter. Start with a scenario: each one changes the situation, not the
+    message, and the verdict changes with it. The policy and the input for whichever scenario you
+    picked stay editable below, so you can take any of them apart.
   </p>
-  <div class="pg">
-    <label>Policy <textarea id="policy" rows="22" spellcheck="false"></textarea></label>
-    <label>Input <textarea id="input" rows="22" spellcheck="false"></textarea></label>
-  </div>
-  <p><button id="run" class="run">Run</button> <span id="status"></span></p>
+
+  <div id="scenarios" class="scen"></div>
+
   <div id="out" hidden>
-    <p id="summary"></p>
-    <table>
-      <thead><tr><th>#</th><th>check</th><th>outcome</th><th>reason</th><th>ms</th></tr></thead>
+    <div id="banner" class="banner">
+      <p id="verdict" class="verdict"></p>
+      <p id="summary" class="summary"></p>
+    </div>
+    <table class="trace">
+      <thead><tr><th class="n">#</th><th>check</th><th>outcome</th><th>reason</th><th class="ms">ms</th></tr></thead>
       <tbody id="rows"></tbody>
     </table>
   </div>
   <p id="error" class="error" hidden></p>
 
+  <details class="src" open>
+    <summary>The policy and the input behind this run</summary>
+    <div class="pg">
+      <label>Policy <textarea id="policy" rows="14" spellcheck="false"></textarea></label>
+      <label>Input <textarea id="input" rows="14" spellcheck="false"></textarea></label>
+    </div>
+    <p class="acts">
+      <button id="run" class="run">Run</button>
+      <button id="copy" class="copy">Copy the policy</button>
+      <span id="status"></span>
+    </p>
+  </details>
+
   <script is:inline define:vars={{ base }}>
     const $ = (id) => document.getElementById(id);
+
     const policy = {
       specVersion: "1.0.0",
       checks: [
@@ -38,26 +54,98 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
         { id: "dailyBudget", limit: 3, bypassPriority: "critical", nearLimit: 0.67 },
       ],
     };
-    const input = {
-      user: { id: "ayse", consent: true, mode: "normal", timezone: "Europe/Istanbul", quietHours: { start: "22:00", end: "08:00" }, createdAt: "2026-01-01T00:00:00Z" },
-      candidate: { id: "a1", type: "reminder", priority: "normal", surfaces: ["push", "feed"], pAccept: 0.41, pNeed: 0.4 },
-      now: "2026-09-04T20:30:00Z",
+    const user = {
+      id: "ayse", consent: true, mode: "normal", timezone: "Europe/Istanbul",
+      quietHours: { start: "22:00", end: "08:00" }, createdAt: "2026-01-01T00:00:00Z",
     };
-    $("policy").value = JSON.stringify(policy, null, 2);
-    $("input").value = JSON.stringify(input, null, 2);
+    const candidate = { id: "a1", type: "reminder", priority: "normal", surfaces: ["push", "feed"], pAccept: 0.41, pNeed: 0.4 };
+
+    // The same message in nine situations. Each entry says what it changes and how many messages
+    // were already delivered today, because a budget can only be exhausted by actually spending it:
+    // `deliveredToday` commits that many decisions before the one you are shown. Every verdict these
+    // labels imply was run against the library before being written down; one of them was wrong the
+    // first time, and the label was changed to match the library rather than the other way round.
+    const scenarios = [
+      { key: "ok", label: "09:00, ordinary day", note: "nothing in the way", now: "2026-09-04T06:00:00Z" },
+      { key: "quiet", label: "23:47, quiet hours", note: "asleep", now: "2026-09-04T20:47:00Z" },
+      // Not the demo it looks like, and better for it: priority clears the quiet-hours floor and
+      // the message still stops, because the TCPA window is law rather than preference and no
+      // priority is allowed past it. The trace shows quietHours pass and window:tcpa reject.
+      { key: "critical", label: "23:47, escalated to critical", note: "clears quiet hours, then meets US law", now: "2026-09-04T20:47:00Z", candidate: { priority: "critical" } },
+      { key: "snooze", label: "snoozed until the morning", note: "held, not dropped", now: "2026-09-04T06:00:00Z", user: { snoozedUntil: "2026-09-04T09:00:00Z" } },
+      { key: "budget", label: "the fourth message today", note: "three already sent", now: "2026-09-04T06:00:00Z", deliveredToday: 3 },
+      { key: "bypass", label: "the fourth, but critical", note: "priority does bypass the budget", now: "2026-09-04T06:00:00Z", deliveredToday: 3, candidate: { priority: "critical" } },
+      { key: "trust", label: "account is three days old", note: "trust is earned over a week", now: "2026-09-04T06:00:00Z", user: { createdAt: "2026-09-01T00:00:00Z" } },
+      { key: "consent", label: "consent never given", note: "the first check", now: "2026-09-04T06:00:00Z", user: { consent: false } },
+      { key: "focus", label: "phone in focus mode", note: "the user's own setting", now: "2026-09-04T06:00:00Z", user: { mode: "focus" } },
+    ];
+
+    $("scenarios").innerHTML = scenarios
+      .map((s) => `<button type="button" class="scen-b" data-key="${s.key}"><span class="scen-l">${s.label}</span><span class="scen-n">${s.note}</span></button>`)
+      .join("");
+
     let mod;
+    const load = async () => (mod ??= await import(`${base}/playground/gate.js`));
+
+    function inputFor(s) {
+      return {
+        user: { ...user, ...(s.user ?? {}) },
+        candidate: { ...candidate, ...(s.candidate ?? {}) },
+        now: s.now,
+        ...(s.deliveredToday ? { deliveredToday: s.deliveredToday } : {}),
+      };
+    }
+
     async function run() {
       $("error").hidden = true;
       $("status").textContent = "running";
       try {
-        mod ??= await import(`${base}/playground/gate.js`);
+        const m = await load();
         const p = JSON.parse($("policy").value);
         const i = JSON.parse($("input").value);
-        const gate = mod.createGate({ policy: p, store: new mod.MemoryStore() });
-        const d = await gate.evaluate({ user: i.user, candidate: i.candidate, now: i.now ? new Date(i.now) : undefined });
-        const verdict = d.allowed ? `allowed on ${d.surfaces.join(", ")}` : d.deferredBy ? `deferred by ${d.deferredBy} until ${d.retryAt.toISOString()}` : `rejected by ${d.rejectedBy}`;
-        $("summary").textContent = `${verdict}${d.reason ? `: ${d.reason}` : ""}${d.shadowed.length ? ` (shadowed: ${d.shadowed.join(", ")})` : ""}`;
-        $("rows").innerHTML = d.trace.map((t, n) => `<tr class="${t.id === (d.rejectedBy ?? d.deferredBy) ? "stop" : ""}${t.shadow ? " shadow" : ""}"><td>${n + 1}</td><td><code>${t.id}</code></td><td>${t.outcome}${t.shadow ? " (shadow)" : ""}</td><td>${t.reason ?? ""}</td><td>${t.ms}</td></tr>`).join("");
+        const now = i.now ? new Date(i.now) : undefined;
+        const gate = m.createGate({ policy: p, store: new m.MemoryStore() });
+
+        // Spend the budget the only way it can honestly be spent: by committing real decisions
+        // first. Nothing here pre-loads a counter behind the library's back.
+        for (let n = 0; n < (i.deliveredToday ?? 0); n += 1) {
+          const earlier = { ...i.candidate, id: `earlier-${n}` };
+          const d = await gate.evaluate({ user: i.user, candidate: earlier, now });
+          if (d.allowed) await gate.commit(d, { user: i.user, candidate: earlier });
+        }
+
+        const d = await gate.evaluate({ user: i.user, candidate: i.candidate, now });
+        const stoppedBy = d.rejectedBy ?? d.deferredBy;
+        // classList, not className: assigning className would drop the class Astro stamps on this
+        // element to scope the stylesheet, and the verdict would lose its colour along with it.
+        const tone = d.allowed ? "go" : d.deferredBy ? "wait" : "stop";
+        for (const el of [$("verdict"), $("banner")]) {
+          el.classList.remove("go", "wait", "stop");
+          el.classList.add(tone);
+        }
+        $("verdict").textContent = d.allowed
+          ? `\u2713 allowed \u2192 ${d.surfaces.join(", ")}`
+          : d.deferredBy
+            ? `\u2192 deferred by ${d.deferredBy}`
+            : `\u2717 rejected by ${d.rejectedBy}`;
+        // Separated rather than stacked: three parenthetical clauses in a row read as an error
+        // message that lost its formatting.
+        $("summary").textContent = [
+          d.reason ?? `${d.trace.length} checks ran, none blocked delivery`,
+          i.deliveredToday ? `${i.deliveredToday} already delivered today` : "",
+          d.shadowed?.length ? `shadowed: ${d.shadowed.join(", ")}` : "",
+        ].filter(Boolean).join("  \u00b7  ");
+        // The same glyph vocabulary the CLI and docs/assets/trace.svg use, so the demo, the
+        // terminal and the figure in the README all read as one tool rather than three.
+        const glyph = { pass: "\u2713", reject: "\u2717", defer: "\u2192", skip: "\u00b7" };
+        $("rows").innerHTML = d.trace
+          .map((t, n) => {
+            const cls = [t.id === stoppedBy ? "stop" : `o-${t.outcome}`, t.shadow ? "shadow" : ""].filter(Boolean).join(" ");
+            return `<tr class="${cls}"><td class="n">${n + 1}</td><td><code>${t.id}</code></td>` +
+              `<td class="oc"><span class="g">${glyph[t.outcome] ?? "\u00b7"}</span> ${t.outcome}${t.shadow ? " <span class=\"sh\">shadow</span>" : ""}</td>` +
+              `<td class="rs">${t.reason ?? ""}</td><td class="ms">${t.ms}</td></tr>`;
+          })
+          .join("");
         $("out").hidden = false;
         $("status").textContent = "";
       } catch (e) {
@@ -66,18 +154,79 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
         $("error").hidden = false;
       }
     }
+
+    function pick(key) {
+      const s = scenarios.find((x) => x.key === key) ?? scenarios[0];
+      for (const b of document.querySelectorAll(".scen-b")) b.classList.toggle("on", b.dataset.key === s.key);
+      $("policy").value = JSON.stringify(policy, null, 2);
+      $("input").value = JSON.stringify(inputFor(s), null, 2);
+      run();
+    }
+
+    $("scenarios").addEventListener("click", (e) => {
+      const b = e.target.closest(".scen-b");
+      if (b) pick(b.dataset.key);
+    });
     $("run").addEventListener("click", run);
-    run();
+    $("copy").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText($("policy").value);
+        $("status").textContent = "policy copied — save it as proactive-gate.policy.json";
+        setTimeout(() => ($("status").textContent = ""), 4000);
+      } catch {
+        $("status").textContent = "could not reach the clipboard; select the policy and copy it";
+      }
+    });
+
+    pick("ok");
   </script>
 
+  <style is:global>
+    #scenarios .scen-b { font: inherit; text-align: left; padding: 0.45rem 0.7rem; border: 1px solid var(--sl-color-gray-5); border-radius: 0.25rem; background: transparent; color: var(--sl-color-white); cursor: pointer; }
+    #scenarios .scen-b:hover { border-color: var(--sl-color-accent); }
+    #scenarios .scen-b.on { border-color: var(--sl-color-accent); background: color-mix(in srgb, var(--sl-color-accent) 16%, transparent); }
+    #scenarios .scen-b .scen-l { display: block; font-size: 0.9rem; font-weight: 600; line-height: 1.35; }
+    #scenarios .scen-b .scen-n { display: block; font-size: 0.75rem; color: var(--sl-color-gray-3); line-height: 1.35; }
+    /* The trace reads like the CLI: a glyph carries the outcome, the check name is mono, the cost
+       is right-aligned, and only the row that stopped the message is filled. */
+    #rows td { vertical-align: top; }
+    #rows td.n, #rows td.ms { text-align: right; color: var(--sl-color-gray-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    #rows td.oc { white-space: nowrap; }
+    #rows td.oc .g { display: inline-block; width: 1em; font-weight: 700; }
+    #rows td.rs { color: var(--sl-color-gray-2); }
+    #rows td.oc .sh { font-size: 0.8em; color: var(--sl-color-gray-3); border: 1px solid var(--sl-color-gray-5); border-radius: 3px; padding: 0 0.3em; }
+    #rows tr.o-pass td.oc { color: var(--sl-color-green-high); }
+    #rows tr.o-skip td.oc, #rows tr.o-defer td.oc { color: var(--sl-color-orange-high); }
+    #rows tr.stop td { background: color-mix(in srgb, var(--sl-color-red) 16%, transparent); }
+    #rows tr.stop td.oc { color: var(--sl-color-red-high); font-weight: 600; }
+    #rows tr.shadow td { opacity: 0.7; }
+  </style>
+
   <style>
+    .scen { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 0.5rem; margin: 1.25rem 0; }
+    /* A panel with a coloured edge, the same shape the share card and trace.svg use. */
+    .banner { border: 1px solid var(--sl-color-gray-5); border-left-width: 4px; border-radius: 4px; padding: 0.7rem 1rem; margin: 1.25rem 0 0.9rem; background: var(--sl-color-gray-7, transparent); }
+    .banner.go { border-left-color: var(--sl-color-green-high); }
+    .banner.stop { border-left-color: var(--sl-color-red-high); }
+    .banner.wait { border-left-color: var(--sl-color-orange-high); }
+    .verdict { font-family: var(--__sl-font-mono); font-size: 1.05rem; font-weight: 700; margin: 0 0 0.15rem; }
+    .verdict.go { color: var(--sl-color-green-high); }
+    .verdict.stop { color: var(--sl-color-red-high); }
+    .verdict.wait { color: var(--sl-color-orange-high); }
+    .summary { margin: 0; color: var(--sl-color-gray-2); font-size: 0.92rem; }
+    .trace { font-size: 0.88rem; }
+    .trace th { font-weight: 600; color: var(--sl-color-gray-3); font-size: 0.8rem; text-transform: lowercase; }
+    .trace th.n, .trace th.ms { text-align: right; }
+    .src { border: 1px solid var(--sl-color-gray-5); border-radius: 4px; padding: 0.6rem 1rem 1rem; margin-top: 1.5rem; }
+    .src > summary { cursor: pointer; font-weight: 600; font-size: 0.92rem; color: var(--sl-color-gray-2); }
+    .acts { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0; }
     .pg { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     @media (max-width: 72rem) { .pg { grid-template-columns: 1fr; } }
     .pg label { display: flex; flex-direction: column; gap: 0.25rem; font-weight: 600; }
     .pg textarea { font-family: var(--__sl-font-mono); font-size: 0.8rem; line-height: 1.4; padding: 0.5rem; border: 1px solid var(--sl-color-gray-5); border-radius: 0.25rem; background: var(--sl-color-black); color: var(--sl-color-white); }
-    .run { font: inherit; font-weight: 600; padding: 0.4rem 1rem; border: 1px solid var(--sl-color-accent); background: var(--sl-color-accent); color: var(--sl-color-black); border-radius: 0.25rem; cursor: pointer; }
-    tr.stop td { background: color-mix(in srgb, var(--sl-color-red) 18%, transparent); }
-    tr.shadow td { opacity: 0.75; }
+    .run, .copy { font: inherit; font-weight: 600; padding: 0.4rem 1rem; border-radius: 0.25rem; cursor: pointer; }
+    .run { border: 1px solid var(--sl-color-accent); background: var(--sl-color-accent); color: var(--sl-color-black); }
+    .copy { border: 1px solid var(--sl-color-gray-5); background: transparent; color: var(--sl-color-white); }
     .error { color: var(--sl-color-red); }
   </style>
 </StarlightPage>
