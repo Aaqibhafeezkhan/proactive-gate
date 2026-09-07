@@ -37,6 +37,13 @@ Sıfır bağımlılık. TypeScript. Node 20 ya da üstü. Framework'ten bağıms
 [bubblegunn.github.io/proactive-gate](https://bubblegunn.github.io/proactive-gate/). Python:
 [`python/`](python/README.md).
 
+Okumak yerine görmeyi tercih ederseniz: `npm run bench:compare`, kayıtlı bir günü hem bu kapıdan
+hem de elle yazılmış beş `if` ifadesinden geçirir ve ayrıştıkları altı yeri yazdırır: bir yaz saati
+sınırı, yanlış güne bağlanmış bir bütçe, ve son kotayı aynı anda alan iki gönderim. Altısının da
+neden zevk meselesi olmadığı, bu dosyanın kısaltılmış olması nedeniyle yalnızca İngilizce
+README'de anlatılıyor: [Compared with hand-rolled
+checks](README.md#compared-with-hand-rolled-checks-and-feature-flags).
+
 ## Bir karar neye benzer
 
 ```ts
@@ -330,6 +337,16 @@ yazmadığı bir sayıyı kodlardı; o yüzden yok.
 Adaptörler framework paketine değil, çağrının biçimine göre tiplenmiştir; başka bir şey
 kurmak gerekmez. Her biri kapının gerekçesiyle reddeder ve onayda bütçeyi tüketir.
 
+Örneklerden ikisi framework kurulu olmadan ve ağ olmadan çalışır: `node examples/mastra/run.mjs`
+ve `node examples/ai-sdk/run.mjs`. İkisi de `npm run examples` ve test paketinin parçası.
+Diğer dört `.ts` dosyası ise fikstür değil, örnekleme: `@langchain/langgraph`, `@mastra/core` ve
+AI SDK'yı içe aktarıyorlar, hiçbiri buranın bağımlılığı değil, dolayısıyla ne derleniyor ne
+çalıştırılıyorlar ve bu README onların çalıştığını iddia etmiyor. Denetlenen şey, bizim
+denetleyebildiğimiz yarısı: `test/example-imports.test.mjs`, bu dosyaların `proactive-gate`'ten içe
+aktardığı her sembolün değer ya da tip olarak hâlâ var olduğunu doğrular, böylece bir export'un adı
+değiştiğinde yayımlanmış bir örnek okuyucuya artık var olmayan bir şeyi içe aktarmasını söylemeye
+sessizce devam edemez.
+
 ## Python
 
 ```
@@ -337,8 +354,10 @@ pip install proactive-gate
 ```
 
 Yayınlanmamış bir durumu denemek için depodan kurulur: `pip install "proactive-gate @
-git+https://github.com/Bubblegunn/proactive-gate#subdirectory=python"`. Yayınlanan sürüm yerel bir
-derlemeden token ile yüklendi; npm paketinin aksine derleme kanıtı taşımıyor.
+git+https://github.com/Bubblegunn/proactive-gate#subdirectory=python"`. Python paketi npm paketiyle
+aynı workflow tarafından yayımlanıyor, dolayısıyla her dosyayı hangi deponun ve hangi workflow'un
+ürettiğini adlandıran PyPI yayın attestation'ları taşıyor. 0.2.2 öncesi sürümler yerel bir
+derlemeden token ile yüklendi ve hiçbir kanıt taşımıyor.
 
 `python/` sapan bir port değil, bir kardeştir: `spec/fixtures` altındaki her senaryoyu senkron
 `Gate` ve `AsyncGate` (Redis, `redis.asyncio` üzerinden) ile geçer; mypy strict, CI'da Python

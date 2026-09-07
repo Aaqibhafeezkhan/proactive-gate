@@ -4,10 +4,8 @@ English | [Türkçe](README.tr.md)
 
 <p>
   <img src="https://img.shields.io/npm/v/proactive-gate?style=flat-square&color=111111&label=npm" alt="npm">
-  <img src="https://img.shields.io/npm/dm/proactive-gate?style=flat-square&color=111111" alt="npm downloads">
   <img src="https://img.shields.io/github/actions/workflow/status/Bubblegunn/proactive-gate/ci.yml?style=flat-square&color=111111&label=ci" alt="ci">
   <img src="https://img.shields.io/bundlephobia/minzip/proactive-gate?style=flat-square&color=111111" alt="minzipped size">
-  <img src="https://img.shields.io/github/stars/Bubblegunn/proactive-gate?style=flat-square&color=111111" alt="stars">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT">
   <a href="https://doi.org/10.5281/zenodo.22393512"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22393512-111111?style=flat-square" alt="DOI"></a>
 </p>
@@ -48,6 +46,12 @@ That writes `proactive-gate.policy.json` with the ten checks in order, appends t
 preset you named, and prints the preset's own source next to the few lines that plug
 the gate into that framework. `npx proactive-gate init --list` shows the fourteen
 platform and legal presets and the four frameworks.
+
+If you would rather see the argument than read it: `npm run bench:compare` replays a
+committed day through this gate and through five hand-written `if` statements, and prints
+the six places they disagree: a daylight-saving boundary, a budget keyed to the wrong day,
+and two sends taking the last slot at once. The output, and why none of the six is a matter
+of taste, is in [Compared with hand-rolled checks](#compared-with-hand-rolled-checks-and-feature-flags).
 
 Zero dependencies. TypeScript. Node 20 or newer. Framework-agnostic: the gate sits
 between "the model produced something" and "the user's phone buzzed", whichever
