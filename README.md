@@ -438,7 +438,7 @@ Set `windowSeconds` from your own transport's retry horizon.
 `MemoryStore` keeps values in process memory and is useful for a single instance. `RedisStore`
 shares values across instances. `SqliteStore` persists values in a SQLite database without
 adding a package dependency. It was contributed by
-[@aaqib-hafeez-khan-in](https://github.com/aaqib-hafeez-khan-in) in [#3](https://github.com/Bubblegunn/proactive-gate/pull/3). `SqliteStore` requires Node.js 22.5 or newer; the SQLite module
+[@Aaqibhafeezkhan](https://github.com/Aaqibhafeezkhan) in [#3](https://github.com/Bubblegunn/proactive-gate/pull/3). `SqliteStore` requires Node.js 22.5 or newer; the SQLite module
 is loaded only when the store is constructed so the package can still be used on Node.js 20. On Node 22 the module prints an ExperimentalWarning on first use; it is stable from Node 24.
 
 **Writing your own store?** `proactive-gate/store-contract` exports the same suite these three are
@@ -453,7 +453,7 @@ It checks `get`, `set` and `del`, `incr` from an absent key, concurrent `incr` a
 expiry boundary, and that a TTL given to `set` and one given to `incr` agree, then replays a
 seeded random operation sequence against `MemoryStore`. A store whose backend owns the clock
 passes `expiry: "skip"` and those cases are reported as skipped rather than quietly dropped. It
-was contributed by [@aaqib-hafeez-khan-in](https://github.com/aaqib-hafeez-khan-in) in
+was contributed by [@Aaqibhafeezkhan](https://github.com/Aaqibhafeezkhan) in
 [#24](https://github.com/Bubblegunn/proactive-gate/pull/24), and lives on its own subpath so
 importing the package never pulls `node:test` into your bundle. See
 [docs/store-contract.md](docs/store-contract.md).
@@ -751,11 +751,11 @@ trace, and adds the part they leave out: the budget consumed at send time.
 ## Thanks
 
 Two people sent pull requests on the day this was published, neither of whom I had spoken to
-before. [@aaqib-hafeez-khan-in](https://github.com/aaqib-hafeez-khan-in) wrote `SqliteStore`
+before. [@Aaqibhafeezkhan](https://github.com/Aaqibhafeezkhan) wrote `SqliteStore`
 ([#3](https://github.com/Bubblegunn/proactive-gate/pull/3)) and
 [@edwardsong08](https://github.com/edwardsong08) wrote the weekly budget
 ([#9](https://github.com/Bubblegunn/proactive-gate/pull/9)). Both shipped in 0.1.2 and are in
-every release since, including the one you install today. @aaqib-hafeez-khan-in came back for a
+every release since, including the one you install today. @Aaqibhafeezkhan came back for a
 second one and wrote the store contract suite in [#24](https://github.com/Bubblegunn/proactive-gate/pull/24).
 
 ## Cite this

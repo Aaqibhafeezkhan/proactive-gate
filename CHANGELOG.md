@@ -9,7 +9,7 @@ for `set` and `incr`, and a seeded random operation sequence replayed against `M
 now that suite existed only inside our own tests, so a Postgres, DynamoDB or KV store had no way to
 find out it disagreed with us about when a key dies.
 
-Contributed by [@aaqib-hafeez-khan-in](https://github.com/aaqib-hafeez-khan-in) in
+Contributed by [@Aaqibhafeezkhan](https://github.com/Aaqibhafeezkhan) in
 [#24](https://github.com/Bubblegunn/proactive-gate/pull/24), closing #11.
 
 Two decisions in it are worth knowing about. A store whose backend owns the clock, which is every
@@ -141,7 +141,7 @@ Property tests over the check order and the store contract, generated from a see
 
 ## 0.1.2 (2026-09-05)
 
-- `SqliteStore` on `node:sqlite` (Node 22.5+), persistence for single-instance deployments, by @aaqib-hafeez-khan-in (#3).
+- `SqliteStore` on `node:sqlite` (Node 22.5+), persistence for single-instance deployments, by @Aaqibhafeezkhan (#3).
 - `weeklyBudget` check keyed on the user's local ISO week, consumed atomically at commit next to the daily one, `defaultChecks({ weeklyLimit })`, by @edwardsong08 (#9, closes #2).
 
 A LangGraph example, a comparison with hand-rolled checks and feature flags, a benchmark (`npm run bench`) with the measured line in the README, and a generated API reference under `docs/api`.
