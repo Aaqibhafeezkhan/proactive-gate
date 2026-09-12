@@ -83,6 +83,65 @@ export class RedisStore implements Store {
   }
 }
 
+/**
+ * The query surface needed by PostgresStore. pg Pool and Client implement it
+ * directly; other Postgres clients can adapt their query method to this shape.
+ */
+export interface PostgresLike {
+  query<T extends Record<string, unknown> = Record<string, unknown>>(
+    text: string,
+    params?: readonly unknown[],
+  ): Promise<{ rows: T[] }>;
+}
+
+export class PostgresStore implements Store {
+  private readonly ready: Promise<void>;
+  private readonly clock: () => number;
+
+  constructor(private readonly client: PostgresLike, clock: () => number = () => Date.now()) {
+    this.clock = clock;
+    this.ready = this.client
+      .query(
+        "CREATE TABLE IF NOT EXISTS proactive_gate_store (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL, expires_at BIGINT)",
+      )
+      .then(() => undefined);
+  }
+
+  async get(key: string): Promise<string | null> {
+    await this.ready;
+    const rows = await this.client.query<{ value: string }>(
+      "SELECT value FROM proactive_gate_store WHERE key = $1 AND (expires_at IS NULL OR expires_at > $2)",
+      [key, this.clock()],
+    );
+    return rows.rows[0]?.value ?? null;
+  }
+
+  async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
+    await this.ready;
+    const expiresAt = ttlSeconds ? this.clock() + ttlSeconds * 1000 : null;
+    await this.client.query(
+      "INSERT INTO proactive_gate_store (key, value, expires_at) VALUES ($1, $2, $3) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, expires_at = EXCLUDED.expires_at",
+      [key, value, expiresAt],
+    );
+  }
+
+  async incr(key: string, ttlSeconds?: number): Promise<number> {
+    await this.ready;
+    const now = this.clock();
+    const expiresAt = ttlSeconds ? now + ttlSeconds * 1000 : null;
+    const rows = await this.client.query<{ value: string }>(
+      "INSERT INTO proactive_gate_store (key, value, expires_at) VALUES ($1, '1', $2) ON CONFLICT (key) DO UPDATE SET value = CASE WHEN proactive_gate_store.expires_at IS NOT NULL AND proactive_gate_store.expires_at <= $3 THEN '1' ELSE (CAST(proactive_gate_store.value AS BIGINT) + 1)::TEXT END, expires_at = CASE WHEN proactive_gate_store.expires_at IS NOT NULL AND proactive_gate_store.expires_at <= $3 THEN EXCLUDED.expires_at ELSE proactive_gate_store.expires_at END RETURNING value",
+      [key, expiresAt, now],
+    );
+    return Number(rows.rows[0]!.value);
+  }
+
+  async del(key: string): Promise<void> {
+    await this.ready;
+    await this.client.query("DELETE FROM proactive_gate_store WHERE key = $1", [key]);
+  }
+}
+
 export class SqliteStore implements Store {
   private readonly database: DatabaseSync;
   private readonly clock: () => number;

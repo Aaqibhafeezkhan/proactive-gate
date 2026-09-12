@@ -9,9 +9,10 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGate, checks, MemoryStore, budgetKey, SqliteStore } from "../src/index.js";
+import { createGate, checks, MemoryStore, budgetKey, PostgresStore, SqliteStore } from "../src/index.js";
 import { storeContract } from "../src/store-contract.js";
 import type { Candidate, Check, Priority, UserState } from "../src/index.js";
+import type { PostgresLike } from "../src/index.js";
 
 /** mulberry32: small, deterministic, good enough to shake out ordering bugs. */
 function rng(seed: number) {
@@ -167,13 +168,54 @@ test("replaying the same decision never spends a second unit", async () => {
   }
 });
 
-const sqliteAvailable = (() => {
-  const [major = 0, minor = 0] = process.versions.node.split(".").map(Number);
-  return major > 22 || (major === 22 && minor >= 5);
-})();
+class FakePostgresClient implements PostgresLike {
+  private readonly rows = new Map<string, { value: string; expires_at: number | null }>();
+
+  async query<T extends Record<string, unknown>>(text: string, params: readonly unknown[] = []): Promise<{ rows: T[] }> {
+    if (text.startsWith("CREATE TABLE IF NOT EXISTS proactive_gate_store")) return { rows: [] };
+
+    if (text.startsWith("SELECT value FROM proactive_gate_store")) {
+      const key = String(params[0]);
+      const now = Number(params[1]);
+      const row = this.rows.get(key);
+      if (!row || (row.expires_at !== null && row.expires_at <= now)) return { rows: [] };
+      return { rows: [{ value: row.value }] as unknown as T[] };
+    }
+
+    if (text.startsWith("INSERT INTO proactive_gate_store (key, value, expires_at) VALUES ($1, $2, $3)")) {
+      this.rows.set(String(params[0]), { value: String(params[1]), expires_at: params[2] === null ? null : Number(params[2]) });
+      return { rows: [] };
+    }
+
+    if (text.startsWith("INSERT INTO proactive_gate_store (key, value, expires_at) VALUES ($1, '1', $2)")) {
+      const key = String(params[0]);
+      const expiresAt = params[1] === null ? null : Number(params[1]);
+      const now = Number(params[2]);
+      const current = this.rows.get(key);
+      if (!current || (current.expires_at !== null && current.expires_at <= now)) {
+        this.rows.set(key, { value: "1", expires_at: expiresAt });
+        return { rows: [{ value: "1" }] as unknown as T[] };
+      }
+      const next = String(Number(current.value) + 1);
+      this.rows.set(key, { value: next, expires_at: current.expires_at });
+      return { rows: [{ value: next }] as unknown as T[] };
+    }
+
+    if (text.startsWith("DELETE FROM proactive_gate_store")) {
+      this.rows.delete(String(params[0]));
+      return { rows: [] };
+    }
+
+    throw new Error(`Unhandled SQL in FakePostgresClient: ${text}`);
+  }
+}
 
 storeContract("MemoryStore", (clock) => new MemoryStore(clock));
 storeContract("SqliteStore", (clock) => {
   const store = new SqliteStore(":memory:", clock);
   return { store, teardown: () => store.close() };
-}, sqliteAvailable ? {} : { skip: "SqliteStore requires Node.js 22.5 or newer" });
+}, (() => {
+  const [major = 0, minor = 0] = process.versions.node.split(".").map(Number);
+  return major > 22 || (major === 22 && minor >= 5);
+})() ? {} : { skip: "SqliteStore requires Node.js 22.5 or newer" });
+storeContract("PostgresStore", (clock) => new PostgresStore(new FakePostgresClient(), clock));
