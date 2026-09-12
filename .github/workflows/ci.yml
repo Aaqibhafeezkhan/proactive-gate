@@ -113,12 +113,43 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run build --if-present
       - run: node scripts/release-gate.mjs
+  postgres:
+    # PostgresStore against a real PostgreSQL server. Its own job because service containers run
+    # on Linux only, and because a store tested against a hand-written fake client cannot fail for
+    # anything the fake gets wrong too. Tests that need this read PROACTIVE_GATE_POSTGRES_URL and
+    # skip with a stated reason when it is unset, so `npm test` still passes with no database.
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73 # postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gate
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PROACTIVE_GATE_POSTGRES_URL: postgres://postgres:postgres@localhost:5432/gate
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
   ci-ok:
     # The one check the branch ruleset requires; it fails if any job above failed or was cancelled.
     if: always()
-    needs: [test, package, spec-lint, conformance, python, release-gate]
+    needs: [test, package, spec-lint, conformance, python, release-gate, postgres]
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "test: ${{ needs.test.result }}  package: ${{ needs.package.result }}  spec-lint: ${{ needs.spec-lint.result }}  conformance: ${{ needs.conformance.result }}  python: ${{ needs.python.result }}  release-gate: ${{ needs.release-gate.result }}"
-          test "${{ needs.test.result }}" = success && test "${{ needs.package.result }}" = success && test "${{ needs.spec-lint.result }}" = success && test "${{ needs.conformance.result }}" = success && test "${{ needs.python.result }}" = success && test "${{ needs.release-gate.result }}" = success
+          echo "test: ${{ needs.test.result }}  package: ${{ needs.package.result }}  spec-lint: ${{ needs.spec-lint.result }}  conformance: ${{ needs.conformance.result }}  python: ${{ needs.python.result }}  release-gate: ${{ needs.release-gate.result }}  postgres: ${{ needs.postgres.result }}"
+          test "${{ needs.test.result }}" = success && test "${{ needs.package.result }}" = success && test "${{ needs.spec-lint.result }}" = success && test "${{ needs.conformance.result }}" = success && test "${{ needs.python.result }}" = success && test "${{ needs.release-gate.result }}" = success && test "${{ needs.postgres.result }}" = success
