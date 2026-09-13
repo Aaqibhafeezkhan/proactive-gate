@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.7.2
+
+**A third implementation of the specification, by somebody who is not us.**
+[@LouisDeconinck](https://github.com/LouisDeconinck) wrote the gate in Go
+([#41](https://github.com/Bubblegunn/proactive-gate/pull/41), closing
+[#16](https://github.com/Bubblegunn/proactive-gate/issues/16)): 58 of 58 fixtures with nothing
+declared skipped, and `go/conformance` is a language neutral runner that reads `spec/fixtures` as
+data and imports nothing from the library it is usually pointed at.
+
+The sentence this earns is the one the project has been trying to be able to say honestly: **the
+TypeScript, Python and independently implemented Go versions all conform to the same behavioural
+specification.** It is checkable by anyone with Go installed, in one command, and the reason it is
+true is that somebody who is not the author of the first two read the specification and made it run.
+
+The pull request carries nine places where the fixtures were ambiguous and had to be guessed, which
+is the specification's real defect report: 5.2 against 5.7 is a genuine contradiction the suite hides
+by always ordering dedupe first, instant rendering is load bearing while unstated, the commit
+marker's value and TTL are unspecified, and an absent field is not the same as an empty list.
+
+**The spec moves to 1.4.2, and `allowedWindow` is now exercised for the first time.** Reviewing the
+Go implementation by mutating it rather than reading it turned up something no reading would have:
+making a window's end inclusive still passed the whole suite, because **no fixture exercised
+`allowedWindow` at all**. Not its boundary, the check. It is in the policy vocabulary of all three
+implementations and eight presets are built on it, which are the regulation shaped ones:
+`wechatTemplateMessage`, `wecomAppMessage`, `kakaoAlimtalk`, `kakaoBrandMessage`, `krNetworkAct50`,
+`jpAntiSpamLaw`, `cnMinorMode` and `usTcpa`. An implementation could have had the US TCPA closing
+minute wrong and reported full conformance. `spec/fixtures/policy/allowed-window.json` pins the
+interval as `[start, end)` and was proved non vacuous before it was committed.
+
+No behaviour changed in this release. The gate decides exactly what 0.7.1 decided; what moved is the
+evidence that the specification says what it means.
+
 ## 0.7.1 (2026-09-12)
 
 **An adversarial clock suite, and the two bugs it found in our own code.**
