@@ -1,8 +1,8 @@
 {
   "spec_version": "1.4.2",
-  "since": "1.0.0",
-  "name": "presets/cn-minor-mode",
-  "description": "cnMinorMode restricts minors to 06:00 to 22:00 China time and one message a day; adults pass.",
+  "since": "1.4.2",
+  "name": "policy/allowed-window",
+  "description": "allowedWindow is the check eight of the presets are built on, including the US TCPA calling hours, Korea's Network Act night window and Kakao's 08:00 to 20:50, and until 1.4.2 no fixture exercised it at all. A window is [start, end): the opening minute is inside the allowed window and the closing minute is outside it. An implementation that treated the window as closed at both ends passed the whole suite.",
   "policy": {
     "specVersion": "1.0.0",
     "checks": [
@@ -10,13 +10,16 @@
         "id": "consent"
       },
       {
-        "preset": "cnMinorMode"
+        "id": "allowedWindow",
+        "start": "08:00",
+        "end": "21:00",
+        "timezone": "user"
       }
     ]
   },
   "tests": [
     {
-      "description": "minor at 23:00 CST rejects",
+      "description": "07:59 is one minute before the window opens",
       "input": {
         "user": {
           "id": "u1",
@@ -24,13 +27,8 @@
           "proactiveEnabled": true,
           "mode": "normal",
           "intensity": "normal",
-          "timezone": "Europe/Istanbul",
-          "quietHours": {
-            "start": "22:00",
-            "end": "08:00"
-          },
-          "createdAt": "2026-01-01T00:00:00Z",
-          "minor": true
+          "timezone": "UTC",
+          "createdAt": "2026-01-01T00:00:00Z"
         },
         "candidate": {
           "id": "c1",
@@ -41,95 +39,19 @@
             "feed"
           ]
         },
-        "now": "2026-09-04T15:00:00Z"
+        "now": "2026-09-04T07:59:00Z"
       },
       "expect": {
         "allowed": false,
-        "rejectedBy": "window:minor",
         "trace": [
           "consent",
-          "window:minor"
-        ]
-      }
-    },
-    {
-      "description": "adult at 23:00 CST passes both",
-      "input": {
-        "user": {
-          "id": "u1",
-          "consent": true,
-          "proactiveEnabled": true,
-          "mode": "normal",
-          "intensity": "normal",
-          "timezone": "Europe/Istanbul",
-          "quietHours": {
-            "start": "22:00",
-            "end": "08:00"
-          },
-          "createdAt": "2026-01-01T00:00:00Z",
-          "minor": false
-        },
-        "candidate": {
-          "id": "c1",
-          "type": "reminder",
-          "priority": "normal",
-          "surfaces": [
-            "push",
-            "feed"
-          ]
-        },
-        "now": "2026-09-04T15:00:00Z"
-      },
-      "expect": {
-        "allowed": true,
-        "trace": [
-          "consent",
-          "window:minor",
-          "dailyBudget"
-        ]
-      }
-    },
-    {
-      "description": "minor at noon CST: first message allowed and consumed",
-      "input": {
-        "user": {
-          "id": "u1",
-          "consent": true,
-          "proactiveEnabled": true,
-          "mode": "normal",
-          "intensity": "normal",
-          "timezone": "Europe/Istanbul",
-          "quietHours": {
-            "start": "22:00",
-            "end": "08:00"
-          },
-          "createdAt": "2026-01-01T00:00:00Z",
-          "minor": true
-        },
-        "candidate": {
-          "id": "c2",
-          "type": "reminder",
-          "priority": "normal",
-          "surfaces": [
-            "push",
-            "feed"
-          ]
-        },
-        "now": "2026-09-04T04:00:00Z"
-      },
-      "commit": true,
-      "expect": {
-        "allowed": true,
-        "trace": [
-          "consent",
-          "window:minor",
-          "dailyBudget"
+          "allowedWindow"
         ],
-        "commit": true
+        "rejectedBy": "allowedWindow"
       }
     },
     {
-      "description": "minor at noon CST: second message rejected",
+      "description": "08:00 is the minute the window opens, and is inside it",
       "input": {
         "user": {
           "id": "u1",
@@ -137,16 +59,11 @@
           "proactiveEnabled": true,
           "mode": "normal",
           "intensity": "normal",
-          "timezone": "Europe/Istanbul",
-          "quietHours": {
-            "start": "22:00",
-            "end": "08:00"
-          },
-          "createdAt": "2026-01-01T00:00:00Z",
-          "minor": true
+          "timezone": "UTC",
+          "createdAt": "2026-01-01T00:00:00Z"
         },
         "candidate": {
-          "id": "c3",
+          "id": "c1",
           "type": "reminder",
           "priority": "normal",
           "surfaces": [
@@ -154,16 +71,77 @@
             "feed"
           ]
         },
-        "now": "2026-09-04T04:00:00Z"
+        "now": "2026-09-04T08:00:00Z"
+      },
+      "expect": {
+        "allowed": true,
+        "trace": [
+          "consent",
+          "allowedWindow"
+        ]
+      }
+    },
+    {
+      "description": "20:59 is the last minute inside the window",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "proactiveEnabled": true,
+          "mode": "normal",
+          "intensity": "normal",
+          "timezone": "UTC",
+          "createdAt": "2026-01-01T00:00:00Z"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder",
+          "priority": "normal",
+          "surfaces": [
+            "push",
+            "feed"
+          ]
+        },
+        "now": "2026-09-04T20:59:00Z"
+      },
+      "expect": {
+        "allowed": true,
+        "trace": [
+          "consent",
+          "allowedWindow"
+        ]
+      }
+    },
+    {
+      "description": "21:00 is the minute the window ends, and is outside it",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "proactiveEnabled": true,
+          "mode": "normal",
+          "intensity": "normal",
+          "timezone": "UTC",
+          "createdAt": "2026-01-01T00:00:00Z"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder",
+          "priority": "normal",
+          "surfaces": [
+            "push",
+            "feed"
+          ]
+        },
+        "now": "2026-09-04T21:00:00Z"
       },
       "expect": {
         "allowed": false,
-        "rejectedBy": "dailyBudget",
         "trace": [
           "consent",
-          "window:minor",
-          "dailyBudget"
-        ]
+          "allowedWindow"
+        ],
+        "rejectedBy": "allowedWindow"
       }
     }
   ]

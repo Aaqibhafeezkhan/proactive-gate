@@ -78,6 +78,7 @@ spec/fixtures/defer/snooze-as-defer.json
 spec/fixtures/mode/allow-list.json
 spec/fixtures/ordering/kill-switch.json
 spec/fixtures/ordering/short-circuit.json
+spec/fixtures/policy/allowed-window.json
 spec/fixtures/policy/unknown-check-is-an-error.json
 spec/fixtures/presets/br-lgpd.json
 spec/fixtures/presets/cn-minor-mode.json

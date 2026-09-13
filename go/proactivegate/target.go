@@ -11,7 +11,7 @@ import (
 // SpecVersion is the version of spec/SPEC.md this implementation targets.
 // The test suite asserts it equals the vendored spec/SPEC_VERSION, so a suite
 // update cannot silently move the contract.
-const SpecVersion = "1.4.1"
+const SpecVersion = "1.4.2"
 
 // ConformanceTarget adapts this implementation to the runner's Target
 // interface. The runner owns the fixtures; this type owns the gate.
