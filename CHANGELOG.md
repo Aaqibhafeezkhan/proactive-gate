@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.2
+## 0.7.2 (2026-09-13)
 
 **A third implementation of the specification, by somebody who is not us.**
 [@LouisDeconinck](https://github.com/LouisDeconinck) wrote the gate in Go
