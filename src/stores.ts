@@ -3,11 +3,16 @@ import type { Store } from "./types.js";
 
 /** In-process store. Correct for one instance, wrong the moment you scale out. */
 export class MemoryStore implements Store {
-  private readonly data = new Map<string, { value: string; expiresAt: number | null }>();
+  private readonly data = new Map<
+    string,
+    { value: string; expiresAt: number | null }
+  >();
 
   constructor(private readonly clock: () => number = () => Date.now()) {}
 
-  private live(key: string): { value: string; expiresAt: number | null } | undefined {
+  private live(
+    key: string,
+  ): { value: string; expiresAt: number | null } | undefined {
     const entry = this.data.get(key);
     if (!entry) return undefined;
     if (entry.expiresAt !== null && entry.expiresAt <= this.clock()) {
@@ -22,13 +27,20 @@ export class MemoryStore implements Store {
   }
 
   async set(key: string, value: string, ttlSeconds?: number): Promise<void> {
-    this.data.set(key, { value, expiresAt: ttlSeconds ? this.clock() + ttlSeconds * 1000 : null });
+    this.data.set(key, {
+      value,
+      expiresAt: ttlSeconds ? this.clock() + ttlSeconds * 1000 : null,
+    });
   }
 
   async incr(key: string, ttlSeconds?: number): Promise<number> {
     const current = this.live(key);
     const next = (current ? Number(current.value) : 0) + 1;
-    const expiresAt = current ? current.expiresAt : ttlSeconds ? this.clock() + ttlSeconds * 1000 : null;
+    const expiresAt = current
+      ? current.expiresAt
+      : ttlSeconds
+        ? this.clock() + ttlSeconds * 1000
+        : null;
     this.data.set(key, { value: String(next), expiresAt });
     return next;
   }
@@ -99,7 +111,10 @@ export class PostgresStore implements Store {
   private readonly clock: () => number;
   private readyError: unknown = undefined;
 
-  constructor(private readonly client: PostgresLike, clock: () => number = () => Date.now()) {
+  constructor(
+    private readonly client: PostgresLike,
+    clock: () => number = () => Date.now(),
+  ) {
     this.clock = clock;
     this.ready = this.initialize();
   }
@@ -129,14 +144,19 @@ export class PostgresStore implements Store {
   async get(key: string): Promise<string | null> {
     await this.waitReady();
     const now = this.clock();
-    const rows = await this.client.query<{ value: string; expires_at: string | null }>(
-      "SELECT value, expires_at FROM proactive_gate_store WHERE key = $1",
-      [key],
-    );
+    const rows = await this.client.query<{
+      value: string;
+      expires_at: string | null;
+    }>("SELECT value, expires_at FROM proactive_gate_store WHERE key = $1", [
+      key,
+    ]);
     const row = rows.rows[0];
     if (!row) return null;
     if (row.expires_at !== null && Number(row.expires_at) <= now) {
-      await this.client.query("DELETE FROM proactive_gate_store WHERE key = $1", [key]);
+      await this.client.query(
+        "DELETE FROM proactive_gate_store WHERE key = $1",
+        [key],
+      );
       return null;
     }
     return row.value;
@@ -167,7 +187,9 @@ export class PostgresStore implements Store {
 
   async del(key: string): Promise<void> {
     await this.waitReady();
-    await this.client.query("DELETE FROM proactive_gate_store WHERE key = $1", [key]);
+    await this.client.query("DELETE FROM proactive_gate_store WHERE key = $1", [
+      key,
+    ]);
   }
 }
 
@@ -177,10 +199,17 @@ export class SqliteStore implements Store {
 
   constructor(path: string, clock: () => number = () => Date.now()) {
     // Resolved lazily so the module also loads where node:sqlite does not exist (older Node, a browser bundle).
-    const loader = (globalThis as { process?: { getBuiltinModule?: (id: string) => unknown } }).process?.getBuiltinModule;
-    const mod = loader ? (loader("node:sqlite") as { DatabaseSync?: typeof import("node:sqlite").DatabaseSync } | undefined) : undefined;
+    const loader = (
+      globalThis as { process?: { getBuiltinModule?: (id: string) => unknown } }
+    ).process?.getBuiltinModule;
+    const mod = loader
+      ? (loader("node:sqlite") as
+          | { DatabaseSync?: typeof import("node:sqlite").DatabaseSync }
+          | undefined)
+      : undefined;
     const DatabaseSync = mod?.DatabaseSync;
-    if (!DatabaseSync) throw new Error("SqliteStore requires Node.js 22.5 or newer.");
+    if (!DatabaseSync)
+      throw new Error("SqliteStore requires Node.js 22.5 or newer.");
     this.database = new DatabaseSync(path);
     this.clock = clock;
     this.database.exec(
@@ -197,16 +226,26 @@ export class SqliteStore implements Store {
    * has already expired, so a key nobody reads again does not live forever.
    */
   private sweep(now: number): void {
-    this.database.prepare("DELETE FROM proactive_gate_store WHERE expires_at IS NOT NULL AND expires_at <= ?").run(now);
+    this.database
+      .prepare(
+        "DELETE FROM proactive_gate_store WHERE expires_at IS NOT NULL AND expires_at <= ?",
+      )
+      .run(now);
   }
 
-  private live(key: string): { value: string; expiresAt: number | null } | undefined {
-    const row = this.database.prepare("SELECT value, expires_at FROM proactive_gate_store WHERE key = ?").get(key) as
-      | { value: string; expires_at: number | null }
-      | undefined;
+  private live(
+    key: string,
+  ): { value: string; expiresAt: number | null } | undefined {
+    const row = this.database
+      .prepare(
+        "SELECT value, expires_at FROM proactive_gate_store WHERE key = ?",
+      )
+      .get(key) as { value: string; expires_at: number | null } | undefined;
     if (!row) return undefined;
     if (row.expires_at !== null && row.expires_at <= this.clock()) {
-      this.database.prepare("DELETE FROM proactive_gate_store WHERE key = ?").run(key);
+      this.database
+        .prepare("DELETE FROM proactive_gate_store WHERE key = ?")
+        .run(key);
       return undefined;
     }
     return { value: row.value, expiresAt: row.expires_at };
@@ -240,12 +279,16 @@ export class SqliteStore implements Store {
   }
 
   async del(key: string): Promise<void> {
-    this.database.prepare("DELETE FROM proactive_gate_store WHERE key = ?").run(key);
+    this.database
+      .prepare("DELETE FROM proactive_gate_store WHERE key = ?")
+      .run(key);
   }
 
   /** Test helper. */
   size(): number {
-    const row = this.database.prepare("SELECT COUNT(*) AS n FROM proactive_gate_store").get() as { n: number };
+    const row = this.database
+      .prepare("SELECT COUNT(*) AS n FROM proactive_gate_store")
+      .get() as { n: number };
     return row.n;
   }
 
