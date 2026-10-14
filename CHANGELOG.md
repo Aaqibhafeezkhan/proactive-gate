@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.0 (unreleased)
+## 0.8.0 (2026-10-14)
 
 **Breaking for anyone on Node 20: the floor is now Node 22.** `engines.node` is `>=22` and the CI
 matrix starts at 22. Node 20 reached end of life on 2026-04-30, and `SqliteStore` already needed
