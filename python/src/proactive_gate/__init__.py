@@ -22,7 +22,7 @@ from .types import (
     UserState,
 )
 
-__version__ = "0.8.0"
+__version__ = "0.8.1"
 
 __all__ = [
     "EN", "PRIORITY_RANK", "KNOWN_CHECKS", "AsyncGate", "AsyncMemoryStore", "AsyncSqliteStore", "AsyncStore", "Candidate", "Check",

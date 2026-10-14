@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.1 (unreleased)
+## 0.8.1 (2026-10-14)
 
 **`explain()` reads a crafted dismissal-cooldown reason in linear time.** The pattern that reads
 the `dismissalCooldown` reason back into facts ended in `silent until (.+)`, so the quoted type and
