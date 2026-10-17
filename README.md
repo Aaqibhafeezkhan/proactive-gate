@@ -116,7 +116,15 @@ account, a snooze, a run of dismissals, and a local day boundary that silences o
 pays another twice. The output, and why none of the six is a matter of taste, is in
 [Compared with hand-rolled checks](#compared-with-hand-rolled-checks-and-feature-flags).
 
-Zero dependencies. TypeScript. Node 22 or newer. Framework-agnostic: the gate sits
+Zero dependencies. TypeScript. Node 22 or newer. The packed main entry also has a
+CI smoke test on Bun 1.4.3 and Deno 2.9.7 on Linux: `MemoryStore`, the default
+checks, an allowed decision, a budget commit and rejections for budget and consent.
+This does not cover the CLI, `SqliteStore`, external stores, adapters or Workers.
+The separate static import-graph check rejects Node builtins reachable from the
+main entry; it leaves lazy imports alone. With Bun and Deno installed, reproduce
+both checks with `npm ci --ignore-scripts && npm run build && sh scripts/smoke-runtimes.sh`.
+
+Framework-agnostic: the gate sits
 between "the model produced something" and "the user's phone buzzed", whichever
 model or framework produced it. Examples: [`examples/vercel-ai-sdk.ts`](examples/vercel-ai-sdk.ts),
 [`examples/mastra.ts`](examples/mastra.ts), [`examples/langgraph.ts`](examples/langgraph.ts), and a
@@ -886,6 +894,8 @@ every release since, including the one you install today. @Aaqibhafeezkhan came 
 second one and wrote the store contract suite in [#24](https://github.com/Bubblegunn/proactive-gate/pull/24).
 
 A third person arrived from the other direction. [@LouisDeconinck](https://github.com/LouisDeconinck) took [#26](https://github.com/Bubblegunn/proactive-gate/issues/26), an issue this project filed against itself to admit that expired rows were never cleaned up, and twelve minutes later sent the fix in both languages with the test that would have caught the original bug ([#27](https://github.com/Bubblegunn/proactive-gate/pull/27), in 0.3.1). He then took [#23](https://github.com/Bubblegunn/proactive-gate/issues/23), the issue asking for a rejection reason a product manager could read, and wrote its sixty-seven sentence templates in both languages ([#28](https://github.com/Bubblegunn/proactive-gate/pull/28), in 0.4.0). That is the work in this library that is hardest to review and easiest to get wrong, because it lives in the wording rather than in the code. His third, hours later, was the India preset ([#29](https://github.com/Bubblegunn/proactive-gate/pull/29), in 0.5.0): he read TRAI's Schedule-II rather than the summaries everyone repeats, found that the "9am to 9pm" everybody quotes is not in the primary text, and encoded the four default-off bands as the opt-ins the regulation actually describes. Three more followed the same day: Brazil's LGPD ([#30](https://github.com/Bubblegunn/proactive-gate/pull/30)), the WhatsApp Business rules ([#31](https://github.com/Bubblegunn/proactive-gate/pull/31)) and `AsyncSqliteStore` for the Python sibling ([#32](https://github.com/Bubblegunn/proactive-gate/pull/32)). Six contributions in one day, each cited to a primary source or measured against a real driver, and one of them found a defect in the one before it.
+
+[@siddiksawani](https://github.com/siddiksawani) read [#70](https://github.com/Bubblegunn/proactive-gate/issues/70), the issue asking for a Bun and Deno test, ran the published package on Node, Bun and Deno, and pointed out that the issue's acceptance test could never fail: both runtimes implement `node:fs`, so importing it would not break them. @siddiksawani then wrote the design that followed from it, a static import-graph check next to a decision test on both runtimes ([#76](https://github.com/Bubblegunn/proactive-gate/pull/76), in 0.8.2), with negative controls showing each half fail on its own.
 
 ## Cite this
 
