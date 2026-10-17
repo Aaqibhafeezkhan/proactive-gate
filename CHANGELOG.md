@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.2
+## 0.8.2 (2026-10-17)
 
 **The main entry is tested on Bun and Deno, and a Node-only import into it now fails CI.** A new
 `runtimes` job packs the package, installs the tarball into an empty project without registry
