@@ -59,7 +59,7 @@ Against notifkit: proactive-gate wins 1, ties 10, loses 0.
 
 ## US calling hours (TCPA)
 
-May a marketing call go out at this instant? The federal rows have a known answer, 47 CFR 64.1200(c)(1): from 8 a.m. to before 9 p.m. at the called party's local time. The state rows have no independent reading: tcpa-quiet-hours' bundled state rules are taken as the reference, and this repository did not re-read them. proactive-gate's `usTcpa` preset encodes the federal window only, as its note says.
+May a marketing call go out at this instant? The federal rows have a known answer, 47 CFR 64.1200(c)(1): from 8 a.m. to before 9 p.m. at the called party's local time. The state rows have no independent reading: tcpa-quiet-hours' bundled state rules are taken as the reference, and this repository did not re-read them. proactive-gate's `usTcpa` preset encodes the federal window only.
 
 | case | correct answer | proactive-gate | tcpa-quiet-hours |
 |---|---|---|---|
