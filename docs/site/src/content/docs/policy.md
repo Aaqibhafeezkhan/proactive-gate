@@ -33,6 +33,8 @@ const gate = createGate({ policy: JSON.parse(await readFile("policy.json", "utf8
 npx proactive-gate replay day.jsonl --policy policy.json --commit
 ```
 
+`day.jsonl` here is your own file of candidates; `npx proactive-gate simulate --dump-events day.jsonl` writes a generated one.
+
 `compilePolicy(policy)` is exported for callers that want the check list. An unknown id or
 preset throws and names the known ones; a `specVersion` whose major this package does not
 implement throws too. The JSON Schema for the document's shape lives at

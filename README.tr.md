@@ -540,7 +540,9 @@ CLI, `{ user, candidate, now }` satırlarından oluşan bir JSONL dosyası alır
 ne yapacağını raporlar. `--commit`, üretimde olduğu gibi bütçeyi sırayla tüketir.
 
 ```
-npx proactive-gate replay examples/day.jsonl --commit
+npx proactive-gate simulate --dump-events events.jsonl
+npx proactive-gate init
+npx proactive-gate replay events.jsonl --policy proactive-gate.policy.json --commit
 ```
 
 ```

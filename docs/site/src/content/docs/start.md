@@ -51,9 +51,15 @@ reads. A candidate needs `id` and `type`; `priority` defaults to `normal`. The g
 
 ## Replay a day before you ship a policy
 
+This chain needs nothing but the package: `simulate` writes a generated week of candidates,
+`init` writes a policy, and `replay` runs the one on the other.
+
 ```
-npx proactive-gate replay examples/day.jsonl --policy examples/policy.json --commit
+npx proactive-gate simulate --dump-events events.jsonl
+npx proactive-gate init
+npx proactive-gate replay events.jsonl --policy proactive-gate.policy.json --commit
 ```
 
 The CLI takes a JSONL file of `{ user, candidate, now }` lines and prints the allow rate and
-the top rejection reasons. `--json` prints one decision per line for a notebook.
+the top rejection reasons. `--json` prints one decision per line for a notebook. Point it at your
+own candidates instead of the generated week to see what a policy would have done to them.

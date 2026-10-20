@@ -592,27 +592,34 @@ is to speak up. If your product would rather stay silent, pass `onStoreError:
 ## Replay a day before you ship a policy
 
 The CLI takes a JSONL file of `{ user, candidate, now }` lines and reports what a
-policy would have done. `--commit` consumes the budget in order, as production would.
+policy would have done. `--commit` consumes the budget in order, as production would. This chain
+needs nothing but the package: `simulate` writes a generated week of candidates, `init` writes a
+policy, and `replay` runs the one on the other. Run the three commands in order in an empty
+directory; the last command prints:
 
 ```
-npx proactive-gate replay examples/day.jsonl --commit
+npx proactive-gate simulate --dump-events events.jsonl
+npx proactive-gate init
+npx proactive-gate replay events.jsonl --policy proactive-gate.policy.json --commit
 ```
 
 ```
-17 candidates  ·  7 allowed (41.2%)  ·  10 rejected
+171 candidates  ·  74 allowed (43.3%)  ·  89 rejected  ·  8 deferred
 
-check        rejected  example
----------------------------------------------------------------
-intensity           3  priority low is below the "normal" intensity floor (normal)
-consent             3  user has not consented to proactive behaviour
-mode                2  operating mode "focus" does not allow proactive messages
-quietHours          1  quiet hours 22:00 to 08:00 Europe/Istanbul; priority normal is below the floor (critical)
-dailyBudget         1  daily budget of 5 used (5)
+check        stopped  example
+--------------------------------------------------------------
+quietHours        34  quiet hours 22:00 to 08:00 (sun 2026-09-06) Europe/Istanbul; priority normal is below the floor (critical)
+intensity         18  priority low is below the "normal" intensity floor (normal)
+mode              17  operating mode "focus" does not allow proactive messages
+trustRamp         16  trust ramp: day 4 of 7, priority normal is below high
+snooze             8  snoozed until 2026-09-10T12:00:00.000Z
+mute               4  type "digest" is muted by the user
 ```
 
-`--policy examples/policy.js` loads your own gate; `--json` prints one full decision
-per line for a notebook. Replay a week of real candidates against a proposed policy
-and you know its allow rate and its silence reasons before a single user does.
+`--policy` takes the JSON file `init` wrote, or a JavaScript module that exports a gate
+(`examples/policy.js` in this repository shows one). `--json` prints one full decision per line
+for a notebook. Replay a week of real candidates against a proposed policy and you know its
+allow rate and its silence reasons before a single user does.
 
 ## Compared with hand-rolled checks and feature flags
 

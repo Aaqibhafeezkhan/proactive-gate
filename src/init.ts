@@ -119,8 +119,8 @@ export function plan(options: { preset?: string; framework?: Framework; out: str
     "",
     snippetFor(framework, options.out),
     "",
-    `then replay a day against it before you ship:`,
-    `  npx proactive-gate replay day.jsonl --policy ${options.out} --commit`,
+    `then replay a day against it before you ship (no events yet? \`npx proactive-gate simulate --dump-events events.jsonl\` writes a generated week):`,
+    `  npx proactive-gate replay events.jsonl --policy ${options.out} --commit`,
   ];
   return { policy: `${JSON.stringify(buildPolicy(options.preset), null, 2)}\n`, message: lines.join("\n") };
 }

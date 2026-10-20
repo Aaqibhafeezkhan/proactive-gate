@@ -37,4 +37,13 @@ if [ -n "$bin" ]; then
   npx --no -- "$bin" --help >/dev/null || { echo "bin failed: $bin --help" >&2; exit 1; }
   echo "bin ok: $bin --help"
 fi
+# The documented first-run chain (docs/first-run.txt) runs against the installed tarball. Issue #63:
+# the first replay command used a file only a clone has.
+while IFS= read -r line; do
+  [ -n "$line" ] || continue
+  cmd=${line#npx proactive-gate }
+  # shellcheck disable=SC2086
+  npx --no -- "$bin" $cmd >/dev/null || { echo "first-run command failed: $line" >&2; exit 1; }
+done < "$root/docs/first-run.txt"
+echo "first-run chain ok"
 cd "$root" && rm -rf "$dir" "$tgz"
