@@ -2,38 +2,83 @@
 
 [English](README.md) | Türkçe
 
-Proaktif bir yapay zekâ ajanının kullanıcıya şu an ulaşıp ulaşamayacağına karar verir ve
-neden ulaşamadığını kaydeder.
+"Yapay zekâ ajanım insanlara geceleri ve günlük sınırımın üstünde mesaj atıyor; hangi kuralın bunu durdurması gerektiğini ise söyleyemiyorum."
+
+proactive-gate, bir yapay zekâ ajanının bir kullanıcıya şu an mesaj gönderip gönderemeyeceğine karar veren bir kütüphanedir (sessiz saatler, günlük sınır, rıza, erteleme) ve gönderemiyorsa nedenini kaydeder.
+
+```
+npx proactive-gate simulate
+```
+
+![npx proactive-gate simulate komutunun terminal kaydı: üretilmiş bir haftada 171 aday mesaj; kapısız gönderilenler ve proactive-gate'ten geçenler. Kapı olmadan 52 mesaj alıcının kendi sessiz saatleri içine düşüyor; kapıyla 3.](docs/assets/demo.gif)
+
+Kayıt, bu komutun gerçek çıktısıdır: üretilmiş bir hafta (sekiz kullanıcı, beş saat dilimi, tohum 7), kimsenin gerçek trafiği değil. Anahtar, hesap ya da ayar gerekmez. Yöntem ve sınırlar aşağıdaki "Simülasyonun gösterdikleri" bölümünde.
+
+Projenize kurun:
+
+```
+npm install proactive-gate        # Node 22 veya üstü
+pip install proactive-gate        # Python 3.11 veya üstü
+go get github.com/Bubblegunn/proactive-gate/go@v0.1.0
+```
+
+Gate'in Vercel AI SDK, Mastra, LangChain ve OpenAI Agents için adaptörleri ve bir Claude Code kancası var. Hazır paketler platform kotalarını ve yasal sınırları tutar.
+
+[Dokümantasyon](https://bubblegunn.github.io/proactive-gate/) · [Oyun alanı](https://bubblegunn.github.io/proactive-gate/playground/) · [SSS](https://bubblegunn.github.io/proactive-gate/faq/)
+
+<p>
+  <img src="https://img.shields.io/npm/v/proactive-gate?style=flat-square&color=111111&label=npm" alt="npm">
+  <img src="https://img.shields.io/github/actions/workflow/status/Bubblegunn/proactive-gate/ci.yml?style=flat-square&color=111111&label=ci" alt="ci">
+  <img src="https://img.shields.io/bundlephobia/minzip/proactive-gate?style=flat-square&color=111111" alt="minzipped size">
+  <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT">
+  <a href="https://doi.org/10.5281/zenodo.22393512"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22393512-111111?style=flat-square" alt="DOI"></a>
+</p>
+
+## İlk karar
+
+Bu, yapıştırıldığı gibi çalışır. `first.mjs` adıyla kaydedin; `npm install proactive-gate` çalıştırılmış bir dizinde (Node 22 veya üstü) `node first.mjs` ile çalıştırın:
+
+```js
+import { createGate, defaultChecks, MemoryStore } from "proactive-gate";
+
+const gate = createGate({
+  store: new MemoryStore(),
+  checks: defaultChecks({ dailyLimit: 3, quietHoursFloor: "high" }),
+});
+
+const user = {
+  id: "ayse",
+  consent: true,
+  timezone: "Europe/Istanbul",
+  quietHours: { start: "22:00", end: "08:00" },
+};
+const candidate = { id: "a1", type: "reminder", priority: "normal" };
+const now = new Date("2026-09-04T00:00:00Z"); // 03:00 in Istanbul
+
+const decision = await gate.evaluate({ user, candidate, now });
+console.log(decision.allowed, decision.rejectedBy);
+console.log(decision.reason);
+console.log(decision.nextAllowedAt?.toISOString());
+```
+
+Çıktı:
+
+```
+false quietHours
+quiet hours 22:00 to 08:00 (thu 2026-09-03) Europe/Istanbul; priority normal is below the floor (high)
+2026-09-04T05:00:00.000Z
+```
+
+Mesaj şimdi gönderilmez, çünkü Istanbul saatiyle 03:00 ve önceliği `high` eşiğinin altında. `nextAllowedAt`, sessiz saatlerin artık uygulanmadığı ilk andır: Istanbul'da 08:00, yani UTC'de 05:00. Üretimde `now` değerini kaldırın; birden fazla süreç gönderiyorsa `RedisStore`, `SqliteStore` veya `PostgresStore` kullanın ve göndermeden hemen önce `gate.commit(decision, input)` çağırın; böylece günlük bütçe atomik olarak tüketilir. Bütçenin neden commit'te uygulandığı için bu dosyadaki "Bütçe evaluate'te değil, commit'te uygulanır" bölümüne bakın.
+
+## Bu nerede durur
 
 Proaktif bir asistanın iki yarısı vardır. Üreten yarı neyin söylenmeye değer olduğuna karar
 verir. Bastıran yarı ise onu şimdi mi, sonra mı, hiç mi söyleyeceğine karar verir. Proaktif
 yapay zekâ üzerine yazılan hemen her şey ilk yarı hakkındadır. Bu paket ikinci yarıdır: tek
 kapı, sıralı bir kontrol listesi ve her ret için bir gerekçe.
 
-```
-npm install proactive-gate
-```
-
-```ts
-import { createGate, defaultChecks, RedisStore } from "proactive-gate";
-
-const gate = createGate({
-  store: new RedisStore(redis),                  // MemoryStore() for one instance
-  checks: defaultChecks({ dailyLimit: 3, quietHoursFloor: "high" }),
-  onDecision: (d) => log.info("gate", d),        // every decision, allowed or not
-});
-
-const decision = await gate.evaluate({ user, candidate });
-if (decision.allowed && (await gate.commit(decision, { user, candidate }))) {
-  await send(decision.surfaces, candidate.payload);
-}
-```
-
-## Kurmadan önce ne değiştirdiğini görün
-
-```
-npx proactive-gate simulate
-```
+## Simülasyonun gösterdikleri
 
 Anahtar yok, hesap yok, ayar yok. Verisi hazır olduğunda tetiklenen, yani kullanıcının uyanık olup
 olmadığına bakmayan bir asistanın bir haftasını önce hiç geçit olmadan, sonra varsayılan sırayla
@@ -546,15 +591,16 @@ npx proactive-gate replay events.jsonl --policy proactive-gate.policy.json --com
 ```
 
 ```
-17 candidates  ·  7 allowed (41.2%)  ·  10 rejected
+171 candidates  ·  74 allowed (43.3%)  ·  89 rejected  ·  8 deferred
 
-check        rejected  example
----------------------------------------------------------------
-intensity           3  priority low is below the "normal" intensity floor (normal)
-consent             3  user has not consented to proactive behaviour
-mode                2  operating mode "focus" does not allow proactive messages
-quietHours          1  quiet hours 22:00 to 08:00 Europe/Istanbul; priority normal is below the floor (critical)
-dailyBudget         1  daily budget of 5 used (5)
+check        stopped  example
+--------------------------------------------------------------
+quietHours        34  quiet hours 22:00 to 08:00 (sun 2026-09-06) Europe/Istanbul; priority normal is below the floor (critical)
+intensity         18  priority low is below the "normal" intensity floor (normal)
+mode              17  operating mode "focus" does not allow proactive messages
+trustRamp         16  trust ramp: day 4 of 7, priority normal is below high
+snooze             8  snoozed until 2026-09-10T12:00:00.000Z
+mute               4  type "digest" is muted by the user
 ```
 
 `--policy examples/policy.js` kendi kapınızı yükler; `--json` bir not defteri için satır başına
