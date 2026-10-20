@@ -34,6 +34,7 @@ export default defineConfig({
         { label: "Simulate", slug: "simulate" },
         { label: "Checks", slug: "checks" },
         { label: "Policy as data", slug: "policy" },
+        { label: "Test your own policy", slug: "testing" },
         { label: "Presets", slug: "presets" },
         { label: "Adapters", slug: "adapters" },
         { label: "Integrations", slug: "integrations" },

@@ -309,6 +309,8 @@ and names the known ones. `compilePolicy` is exported for callers that want the 
 and the schema is at [`spec/schema/policy.schema.json`](spec/schema/policy.schema.json).
 `examples/policy.js` stays as the escape hatch for checks that need functions.
 
+To keep your own policy from drifting, run fixtures against it in CI: [Test your own policy](https://bubblegunn.github.io/proactive-gate/testing/).
+
 ## Defer, shadow mode, near-limit notes and hooks
 
 A check can `defer` instead of rejecting: the decision has `allowed: false`, `deferredBy` and
