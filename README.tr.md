@@ -64,7 +64,8 @@ npx proactive-gate simulate kendi-adaylarim.jsonl      # üretilmiş hafta deği
 
 ## Bu kütüphanenin yapmayacağı şeyler
 
-- **Gönderilen kontroller politika yüzeyinin tamamıdır:** `defaultChecks()` içinde on iki, bir politika ya da hazır paket adlandırdığında çalışan on tane daha. Yenisi, bunların ifade edemediği
+- **Gönderilen kontroller politika yüzeyinin tamamıdır:** `defaultChecks()` içinde on iki, bir
+  politika ya da hazır paket adlandırdığında çalışan on tane daha. Yenisi, bunların ifade edemediği
   bir kuralı olan gerçek bir kurulum gerekir.
 - **Preset kataloğu birleşmiş hâliyle donduruldu.** Yeni bir preset için, o kanala ya da o mevzuata
   göre gerçekten ürün gönderen ve bunu issue'da söyleyen birine ihtiyaç var. "Bu ülkenin de bir

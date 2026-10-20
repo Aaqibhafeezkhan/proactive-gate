@@ -886,7 +886,8 @@ to five; `defaultChecks({ dailyLimit })` defaults to five.
 The shape has older relatives. Matrix push rules are an ordered list where the first matching
 rule decides. Android notification channels and iOS interruption levels give the user a
 per-type switch and a priority floor that bypasses quiet time. Horvitz's work on mixed
-initiative supplied the two optional checks. This package puts those ideas in one list with a
+initiative supplied the ideas behind the checks that ship off, `utilityFloor` and
+`boundedDeferral`. This package puts those ideas in one list with a
 trace, and adds the part they leave out: the budget consumed at send time.
 
 ## Thanks

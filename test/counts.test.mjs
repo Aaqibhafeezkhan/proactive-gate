@@ -27,7 +27,6 @@ const checkCounts = new Set([
   Object.keys(KNOWN_CHECKS).length, // every factory
   Object.keys(KNOWN_CHECKS).length - defaultChecks().length, // the ones that are off by default
   quietHoursPosition, // checks that ran when quietHours rejected
-  defaultChecks().length - buildPolicy().checks.length, // README "the two optional checks": the two init leaves out (which two is not verified)
 ]);
 const presetCounts = new Set([
   Object.keys(presets).length,

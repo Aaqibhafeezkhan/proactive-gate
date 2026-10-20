@@ -62,7 +62,7 @@ reader will see it.
 ## Declaring the version you target
 
 State the spec version in your own metadata, and assert in your continuous integration that it
-equals the `SPEC_VERSION` in the suite you vendored. Both implementations here do that, and it is
+equals the `SPEC_VERSION` in the suite you vendored. All three implementations here do that, and it is
 what stops a suite from being updated underneath a claim.
 
 ## Adding to the suite
