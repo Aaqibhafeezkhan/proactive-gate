@@ -59,14 +59,34 @@ test("a broken policy fails, and says where", () => {
   }
 });
 
+/** Calls a factory with a probe object and returns the option names it asked for, by get, has, or enumeration. */
+const probeReads = (call: (options: never) => unknown) => {
+  const read = new Set<string>();
+  let enumerated = false;
+  const probe = new Proxy({}, {
+    get: (_t, key) => { if (typeof key === "string") read.add(key); return undefined; },
+    has: (_t, key) => { if (typeof key === "string") read.add(key); return false; },
+    ownKeys: () => { enumerated = true; return []; },
+  });
+  try { call(probe as never); } catch { /* a factory may refuse a missing option; it still read its keys first */ }
+  return { read, enumerated };
+};
+
 test("the documented options are the options each factory reads", () => {
   for (const [id, factory] of Object.entries(KNOWN_CHECKS)) {
-    const read = new Set<string>();
-    const probe = new Proxy({}, { get: (_t, key) => { if (typeof key === "string") read.add(key); return undefined; } });
-    try { factory(probe as never); } catch { /* a factory may refuse a missing option; it still read its keys first */ }
+    const { read, enumerated } = probeReads(factory);
     // compilePolicy removes `id` before it calls a factory, so it is never an option a policy can set.
     read.delete("id");
+    assert.equal(enumerated, false, `${id} enumerates its options; the probe cannot see which ones it reads`);
     assert.deepEqual([...read].sort(), Object.keys(CHECK_DOCS[id]!.options).sort(), id);
+  }
+});
+
+test("the documented preset options are the options each preset reads", () => {
+  for (const [name, preset] of Object.entries(presets)) {
+    const { read, enumerated } = probeReads(preset as never);
+    assert.equal(enumerated, false, `${name} enumerates its options; the probe cannot see which ones it reads`);
+    assert.deepEqual([...read].sort(), Object.keys(PRESET_OPTIONS[name] ?? {}).sort(), name);
   }
 });
 
