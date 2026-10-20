@@ -140,10 +140,16 @@ class Evaluation:
             self._maybe_finish()
             return
         if outcome.kind == "reject":
-            self._finish(rejected_by=check.id, reason=outcome.reason)
+            self._finish(rejected_by=check.id, reason=outcome.reason, next_allowed_at=self._hold_for(check, ctx))
             return
         if outcome.kind == "defer":
-            self._finish(deferred_by=check.id, retry_at=outcome.retry_at, reason=outcome.reason)
+            retry_at = outcome.retry_at
+            self._finish(
+                deferred_by=check.id,
+                retry_at=retry_at,
+                reason=outcome.reason,
+                next_allowed_at=retry_at if retry_at is not None and retry_at > self.now else None,
+            )
             return
         if outcome.kind == "adjust":
             if outcome.deliver_at is not None:
@@ -151,6 +157,17 @@ class Evaluation:
             if outcome.surfaces is not None:
                 self._surfaces = tuple(outcome.surfaces)
         self._maybe_finish()
+
+    def _hold_for(self, check: Check, ctx: Context) -> datetime | None:
+        """What the denying check says about when it would stop denying; a failure or a past instant is no answer."""
+        hook: Callable[[Context], datetime | None] | None = getattr(check, "next_allowed_at", None)
+        if hook is None:
+            return None
+        try:
+            at = hook(ctx)
+        except BaseException:  # noqa: BLE001 - an answer that fails is no answer, never a failed decision
+            return None
+        return at if at is not None and at > self.now else None
 
     def _maybe_finish(self) -> None:
         if self._index >= len(self.checks):
@@ -163,6 +180,7 @@ class Evaluation:
         deferred_by: str | None = None,
         retry_at: datetime | None = None,
         reason: str | None = None,
+        next_allowed_at: datetime | None = None,
     ) -> None:
         user, candidate = self.input.user, self.input.candidate
         self._result = Decision(
@@ -180,6 +198,7 @@ class Evaluation:
             deferred_by=deferred_by,
             retry_at=retry_at,
             reason=reason,
+            next_allowed_at=next_allowed_at,
         )
         self._call("finally_", self._result)
 

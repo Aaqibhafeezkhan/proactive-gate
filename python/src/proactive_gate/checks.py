@@ -7,10 +7,10 @@ from __future__ import annotations
 import json
 import math
 from collections.abc import Callable, Mapping, Sequence
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Protocol, runtime_checkable
 
-from .clock import DAY_SECONDS, day_before, in_window, iso_week_key, local_clock, local_day, parse_hhmm, weekday_of
+from .clock import DAY_SECONDS, day_before, in_window, iso_week_key, local_clock, local_day, next_key_change, parse_hhmm, weekday_of
 from .types import (
     PASS,
     ConsumePlan,
@@ -128,6 +128,9 @@ class Snooze(BaseCheck):
         reason = f"snoozed until {iso_z(until)}"
         return defer(reason, until) if self.defer else reject(reason)
 
+    def next_allowed_at(self, ctx: Context) -> datetime | None:
+        return ctx.user.snoozed_until
+
 
 class Mute(BaseCheck):
     id = "mute"
@@ -185,6 +188,37 @@ def quiet_at(quiet: QuietWindow | QuietSchedule, day: str, minutes: int) -> tupl
     return None
 
 
+_MINUTE = timedelta(minutes=1)
+
+
+def quiet_ends_at(quiet: QuietWindow | QuietSchedule, tz: str, now: datetime) -> datetime | None:
+    """The earliest minute after ``now`` at which quiet hours stop applying, or ``None``.
+
+    Each jump moves to the end of the window silencing the current local time. A daylight-saving
+    change between the two instants lands the jump an hour early (still quiet, so it jumps again)
+    or an hour late (so it steps back a minute at a time to the first open minute). Same
+    algorithm as ``quietEndsAt`` in the TypeScript package, held to the same fixtures.
+    """
+    start = now.astimezone(UTC).replace(second=0, microsecond=0)
+    at = start
+    for _ in range(16):
+        minutes, day = local_clock(at, tz)
+        hit = quiet_at(quiet, day, minutes)
+        if hit is None:
+            for _back in range(180):
+                earlier = at - _MINUTE
+                if earlier <= start:
+                    break
+                before_minutes, before_day = local_clock(earlier, tz)
+                if quiet_at(quiet, before_day, before_minutes) is not None:
+                    break
+                at = earlier
+            return at if at > now else None
+        until_end = (parse_hhmm(hit[0].end) - minutes) % 1440 or 1
+        at = at + timedelta(minutes=until_end)
+    return None
+
+
 class QuietHours(BaseCheck):
     id = "quietHours"
 
@@ -208,6 +242,12 @@ class QuietHours(BaseCheck):
         # yesterday's setting, and a reader checking today's would not find it.
         whose = "" if from_day == day else f" ({weekday_of(from_day)} {from_day})"
         return reject(f"quiet hours {window.start} to {window.end}{whose} {ctx.user.timezone}; priority {ctx.priority} is below the floor ({self.floor})")
+
+    def next_allowed_at(self, ctx: Context) -> datetime | None:
+        qh = ctx.user.quiet_hours
+        if qh is None or not ctx.user.timezone:
+            return None
+        return quiet_ends_at(qh, ctx.user.timezone, ctx.now)
 
 
 class TrustRamp(BaseCheck):
@@ -321,6 +361,17 @@ class Budget(BaseCheck):
             return None
         return ConsumePlan(self.key_for(ctx), self.ttl_seconds, self.limit)
 
+    def key_at(self, user_id: str, at: datetime, tz: str | None) -> str:
+        """The counter key in force at ``at``; the reset is the first minute this answers differently."""
+        raise NotImplementedError
+
+    def next_allowed_at(self, ctx: Context) -> datetime | None:
+        user = ctx.user
+        try:
+            return next_key_change(ctx.now, user.timezone, lambda at: self.key_at(user.id, at, user.timezone))
+        except NotImplementedError:
+            return None
+
 
 def budget_key(user_id: str, now: datetime, tz: str | None = None) -> str:
     return f"budget:{user_id}:{local_day(now, tz)}"
@@ -343,6 +394,9 @@ class DailyBudget(Budget):
     def key_for(self, ctx: Context) -> str:
         return budget_key(ctx.user.id, ctx.now, ctx.user.timezone)
 
+    def key_at(self, user_id: str, at: datetime, tz: str | None) -> str:
+        return budget_key(user_id, at, tz)
+
 
 class WeeklyBudget(Budget):
     id = "weeklyBudget"
@@ -353,6 +407,9 @@ class WeeklyBudget(Budget):
     def key_for(self, ctx: Context) -> str:
         return weekly_budget_key(ctx.user.id, ctx.now, ctx.user.timezone)
 
+    def key_at(self, user_id: str, at: datetime, tz: str | None) -> str:
+        return weekly_budget_key(user_id, at, tz)
+
 
 class MonthlyBudget(Budget):
     id = "monthlyBudget"
@@ -362,6 +419,9 @@ class MonthlyBudget(Budget):
 
     def key_for(self, ctx: Context) -> str:
         return monthly_budget_key(ctx.user.id, ctx.now, ctx.user.timezone)
+
+    def key_at(self, user_id: str, at: datetime, tz: str | None) -> str:
+        return monthly_budget_key(user_id, at, tz)
 
 
 class UtilityFloor(BaseCheck):

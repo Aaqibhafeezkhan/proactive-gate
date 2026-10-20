@@ -1,7 +1,8 @@
 """Local-time arithmetic with the standard library only."""
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from collections.abc import Callable
+from datetime import UTC, date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 DAY_SECONDS = 24 * 60 * 60
@@ -54,3 +55,33 @@ def weekday_of(day: str) -> str:
 
 def day_before(day: str) -> str:
     return (date.fromisoformat(day) - timedelta(days=1)).isoformat()
+
+
+_MINUTE = timedelta(minutes=1)
+
+
+def _floor_minute(at: datetime) -> datetime:
+    return at.astimezone(UTC).replace(second=0, microsecond=0)
+
+
+def next_key_change(now: datetime, tz: str | None, key_at: Callable[[datetime], str]) -> datetime | None:
+    """The first minute after ``now`` at which ``key_at`` answers differently.
+
+    Found by jumping to successive local midnights, then stepping back a minute at a time to the
+    first minute of the new key, which is what a daylight-saving change before midnight needs.
+    ``None`` when the key does not change within forty days.
+    """
+    base = key_at(now)
+    start = _floor_minute(now)
+    at = start
+    for _ in range(40):
+        minutes = local_clock(at, tz)[0] if tz else at.hour * 60 + at.minute
+        at = at + timedelta(minutes=1440 - minutes)
+        if key_at(at) != base:
+            for _back in range(180):
+                earlier = at - _MINUTE
+                if earlier <= start or key_at(earlier) == base:
+                    break
+                at = earlier
+            return at
+    return None
