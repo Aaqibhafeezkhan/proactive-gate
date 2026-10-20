@@ -1,0 +1,132 @@
+{
+  "spec_version": "1.5.0",
+  "since": "1.5.0",
+  "name": "hold/quiet-hours-dst",
+  "description": "Across a daylight-saving change the answer is the first open minute by the local clock, not the naive sum of hours.",
+  "policy": {
+    "specVersion": "1.0.0",
+    "checks": [
+      {
+        "id": "consent"
+      },
+      {
+        "id": "quietHours",
+        "priorityFloor": "high"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "spring forward: 08:00 local is 12:00 UTC because 02:00 to 03:00 does not exist",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "America/New_York",
+          "quietHours": {
+            "start": "22:00",
+            "end": "08:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-03-08T04:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-03-08T12:00:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "spring forward: a window ending at 02:30, a time that does not exist, ends when the clocks reach 03:00",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "America/New_York",
+          "quietHours": {
+            "start": "22:00",
+            "end": "02:30"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-03-08T04:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-03-08T07:00:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "fall back: 03:00 local is 08:00 UTC because 01:00 to 02:00 happens twice",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "America/New_York",
+          "quietHours": {
+            "start": "22:00",
+            "end": "03:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-11-01T04:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-11-01T08:00:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "fall back: a window ending at 01:30 first opens at 01:30 EDT, although 01:00 to 01:29 EST is quiet again",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "America/New_York",
+          "quietHours": {
+            "start": "22:00",
+            "end": "01:30"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-11-01T04:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-11-01T05:30:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    }
+  ]
+}

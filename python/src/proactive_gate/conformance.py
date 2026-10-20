@@ -53,6 +53,8 @@ def _compare(failures: list[str], at: str, decision: Decision, expect: Mapping[s
     check("rejectedBy", decision.rejected_by, expect.get("rejectedBy"))
     check("deferredBy", decision.deferred_by, expect.get("deferredBy"))
     check("retryAt", iso_z(decision.retry_at) if decision.retry_at else None, expect.get("retryAt"))
+    if "nextAllowedAt" in expect:
+        check("nextAllowedAt", iso_z(decision.next_allowed_at) if decision.next_allowed_at else None, expect["nextAllowedAt"])
     if "surfaces" in expect:
         check("surfaces", list(decision.surfaces), expect["surfaces"])
     check("deliverAt", iso_z(decision.deliver_at) if decision.deliver_at else None, expect.get("deliverAt"))

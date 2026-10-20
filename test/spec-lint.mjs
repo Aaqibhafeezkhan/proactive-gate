@@ -56,13 +56,20 @@ function checkFixture(file, fx) {
     const e = t.expect ?? {};
     if (typeof e.allowed !== "boolean") fail(file, `${at}.expect.allowed must be boolean`);
     if (!Array.isArray(e.trace) || e.trace.some((x) => typeof x !== "string")) fail(file, `${at}.expect.trace must be an array of check ids`);
-    for (const key of Object.keys(e)) if (!["allowed", "rejectedBy", "deferredBy", "retryAt", "surfaces", "deliverAt", "trace", "shadowed", "nearLimit", "reason_pattern", "commit", "store_after"].includes(key)) fail(file, `${at}.expect unknown key ${key}`);
+    for (const key of Object.keys(e)) if (!["allowed", "rejectedBy", "deferredBy", "retryAt", "surfaces", "deliverAt", "trace", "shadowed", "nearLimit", "reason_pattern", "commit", "store_after", "nextAllowedAt"].includes(key)) fail(file, `${at}.expect unknown key ${key}`);
     if ("ms" in e) fail(file, `${at}.expect must not carry ms`);
     if (e.allowed && (e.rejectedBy || e.deferredBy)) fail(file, `${at}: allowed decisions have no rejectedBy or deferredBy`);
     if (e.rejectedBy && e.deferredBy) fail(file, `${at}: rejectedBy and deferredBy are exclusive`);
     if (e.deferredBy && !e.retryAt) fail(file, `${at}: deferredBy needs retryAt`);
     if ("commit" in e && !t.commit) fail(file, `${at}: expect.commit needs commit: true`);
     for (const key of ["retryAt", "deliverAt"]) if (e[key] && !e[key].endsWith("Z")) fail(file, `${at}.expect.${key} must end in Z`);
+    // nextAllowedAt is an instant, or null to assert that the decision carries none. Only a denial has one,
+    // and a deferral's equals its retryAt (SPEC 3.6).
+    if ("nextAllowedAt" in e && e.nextAllowedAt !== null) {
+      if (typeof e.nextAllowedAt !== "string" || !e.nextAllowedAt.endsWith("Z")) fail(file, `${at}.expect.nextAllowedAt must be null or an instant ending in Z`);
+      else if (e.allowed) fail(file, `${at}: allowed decisions have no nextAllowedAt`);
+      else if (e.deferredBy && e.nextAllowedAt !== e.retryAt) fail(file, `${at}: a deferred decision's nextAllowedAt is its retryAt`);
+    }
   });
   void OUTCOMES;
 }

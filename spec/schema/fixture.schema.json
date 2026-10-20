@@ -41,6 +41,7 @@
               "rejectedBy": { "type": "string" },
               "deferredBy": { "type": "string" },
               "retryAt": { "type": "string", "pattern": "Z$" },
+              "nextAllowedAt": { "type": ["string", "null"], "pattern": "Z$" },
               "surfaces": { "type": "array", "items": { "type": "string" } },
               "deliverAt": { "type": "string", "pattern": "Z$" },
               "trace": { "type": "array", "items": { "type": "string" } },

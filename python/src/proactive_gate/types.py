@@ -228,6 +228,13 @@ class Decision:
     deferred_by: str | None = None
     retry_at: datetime | None = None
     reason: str | None = None
+    next_allowed_at: datetime | None = None
+    """Earliest instant at which the check that denied this candidate would stop denying it.
+
+    A lower bound, not a promise: a later check can still deny then. ``None`` when allowed, when
+    the denying check cannot say, and when a shadowed check would have denied. For a deferred
+    decision it equals ``retry_at``.
+    """
 
 
 @dataclass(frozen=True, slots=True)

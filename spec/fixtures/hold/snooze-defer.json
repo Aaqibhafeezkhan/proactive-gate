@@ -1,0 +1,46 @@
+{
+  "spec_version": "1.5.0",
+  "since": "1.5.0",
+  "name": "hold/snooze-defer",
+  "description": "A deferred decision carries the same instant in retryAt and nextAllowedAt.",
+  "policy": {
+    "specVersion": "1.0.0",
+    "checks": [
+      {
+        "id": "consent"
+      },
+      {
+        "id": "snooze",
+        "defer": true
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "deferred until the snooze ends",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "snoozedUntil": "2026-09-04T10:00:00Z"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T09:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "deferredBy": "snooze",
+        "retryAt": "2026-09-04T10:00:00.000Z",
+        "nextAllowedAt": "2026-09-04T10:00:00.000Z",
+        "trace": [
+          "consent",
+          "snooze"
+        ]
+      }
+    }
+  ]
+}

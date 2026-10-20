@@ -56,6 +56,9 @@ type Decision struct {
 	Shadowed   []string
 	NearLimit  []NearLimit
 	Reason     string
+	// NextAllowedAt is the earliest instant the denying check would stop denying (SPEC 3.6),
+	// ISO ending Z, empty when absent. A target that does not implement 3.6 leaves it empty.
+	NextAllowedAt string
 	// Handle lets a target carry its own decision object from Evaluate to
 	// Commit; the runner never reads it.
 	Handle any
@@ -128,6 +131,9 @@ type Expect struct {
 	ReasonPattern string            `json:"reason_pattern"`
 	Commit        *bool             `json:"commit"`
 	StoreAfter    map[string]string `json:"store_after"`
+	// NextAllowedAt is raw so that "absent" (not asserted), null (asserted absent) and an
+	// instant stay three different things.
+	NextAllowedAt json.RawMessage `json:"nextAllowedAt"`
 }
 
 // LoadFixtures reads every fixture file under dir, in sorted path order.
@@ -269,6 +275,14 @@ func RunFixture(f *Fixture, target Target) []string {
 			check("surfaces", decision.Surfaces, e.Surfaces)
 		}
 		check("deliverAt", decision.DeliverAt, e.DeliverAt)
+		if len(e.NextAllowedAt) > 0 {
+			var expected, actual any
+			_ = json.Unmarshal(e.NextAllowedAt, &expected)
+			if decision.NextAllowedAt != "" {
+				actual = decision.NextAllowedAt
+			}
+			check("nextAllowedAt", actual, expected)
+		}
 		if e.Shadowed != nil {
 			check("shadowed", decision.Shadowed, e.Shadowed)
 		}

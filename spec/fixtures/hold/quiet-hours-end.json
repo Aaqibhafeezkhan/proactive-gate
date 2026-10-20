@@ -1,0 +1,243 @@
+{
+  "spec_version": "1.5.0",
+  "since": "1.5.0",
+  "name": "hold/quiet-hours-end",
+  "description": "A quiet-hours rejection carries the minute the window ends, in the user's zone, including zones whose offset is not a whole hour.",
+  "policy": {
+    "specVersion": "1.0.0",
+    "checks": [
+      {
+        "id": "consent"
+      },
+      {
+        "id": "quietHours",
+        "priorityFloor": "high"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "23:30 in Istanbul: the window ends 08:00 the next morning",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "quietHours": {
+            "start": "22:00",
+            "end": "08:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T20:30:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-09-05T05:00:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "03:00 in Istanbul: the same window ends this morning",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "quietHours": {
+            "start": "22:00",
+            "end": "08:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T00:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-09-04T05:00:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "a window that does not cross midnight",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "quietHours": {
+            "start": "13:00",
+            "end": "14:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T10:15:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-09-04T11:00:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "one minute before the end: the answer is the next minute",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "quietHours": {
+            "start": "22:00",
+            "end": "08:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-05T04:59:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-09-05T05:00:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "seconds are dropped: the end is still a whole minute",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "quietHours": {
+            "start": "22:00",
+            "end": "08:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T20:30:45Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-09-05T05:00:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "the end minute itself is open: no answer because nothing was denied",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "quietHours": {
+            "start": "22:00",
+            "end": "08:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-05T05:00:00Z"
+      },
+      "expect": {
+        "allowed": true,
+        "nextAllowedAt": null,
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "Kathmandu is UTC+05:45",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Asia/Kathmandu",
+          "quietHours": {
+            "start": "22:00",
+            "end": "08:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T17:15:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-09-05T02:15:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "Lord Howe moves its clocks by 30 minutes on 2026-10-04",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Australia/Lord_Howe",
+          "quietHours": {
+            "start": "22:00",
+            "end": "08:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-10-03T12:30:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-10-03T21:00:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    }
+  ]
+}

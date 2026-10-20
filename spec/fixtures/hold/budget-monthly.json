@@ -1,0 +1,72 @@
+{
+  "spec_version": "1.5.0",
+  "since": "1.5.0",
+  "name": "hold/budget-monthly",
+  "description": "An exhausted monthly budget carries the first minute of the next local month.",
+  "policy": {
+    "specVersion": "1.0.0",
+    "checks": [
+      {
+        "id": "consent"
+      },
+      {
+        "id": "monthlyBudget",
+        "limit": 1
+      }
+    ]
+  },
+  "store_seed": {
+    "monthlyBudget:u1:2026-09": "1",
+    "monthlyBudget:u2:2026-12": "1"
+  },
+  "tests": [
+    {
+      "description": "mid-September in Istanbul: October starts at 21:00 UTC on 30 September",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-15T09:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "monthlyBudget",
+        "nextAllowedAt": "2026-09-30T21:00:00.000Z",
+        "trace": [
+          "consent",
+          "monthlyBudget"
+        ]
+      }
+    },
+    {
+      "description": "the last day of the year rolls into the next year",
+      "input": {
+        "user": {
+          "id": "u2",
+          "consent": true,
+          "timezone": "Europe/Istanbul"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-12-31T09:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "monthlyBudget",
+        "nextAllowedAt": "2026-12-31T21:00:00.000Z",
+        "trace": [
+          "consent",
+          "monthlyBudget"
+        ]
+      }
+    }
+  ]
+}

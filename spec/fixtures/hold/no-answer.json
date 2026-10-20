@@ -1,0 +1,132 @@
+{
+  "spec_version": "1.5.0",
+  "since": "1.5.0",
+  "name": "hold/no-answer",
+  "description": "A check that cannot say when it would stop denying gives no nextAllowedAt, and the field is absent rather than a guess.",
+  "policy": {
+    "specVersion": "1.0.0",
+    "checks": [
+      {
+        "id": "consent"
+      },
+      {
+        "id": "mute"
+      },
+      {
+        "id": "quietHours",
+        "shadow": true
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "consent withheld: nothing in time changes that",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": false,
+          "timezone": "Europe/Istanbul"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T09:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "consent",
+        "nextAllowedAt": null,
+        "trace": [
+          "consent"
+        ]
+      }
+    },
+    {
+      "description": "a muted type",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "mutedTypes": [
+            "reminder"
+          ]
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T09:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "mute",
+        "nextAllowedAt": null,
+        "trace": [
+          "consent",
+          "mute"
+        ]
+      }
+    },
+    {
+      "description": "quiet hours with no time zone: the check skips, so there is nothing to wait for",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "quietHours": {
+            "start": "22:00",
+            "end": "08:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T20:30:00Z"
+      },
+      "expect": {
+        "allowed": true,
+        "nextAllowedAt": null,
+        "shadowed": [],
+        "trace": [
+          "consent",
+          "mute",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "a shadowed quiet-hours rejection never stops the decision, so the decision carries no answer",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "quietHours": {
+            "start": "22:00",
+            "end": "08:00"
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T20:30:00Z"
+      },
+      "expect": {
+        "allowed": true,
+        "nextAllowedAt": null,
+        "shadowed": [
+          "quietHours"
+        ],
+        "trace": [
+          "consent",
+          "mute",
+          "quietHours"
+        ]
+      }
+    }
+  ]
+}

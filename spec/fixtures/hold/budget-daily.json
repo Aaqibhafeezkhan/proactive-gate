@@ -1,0 +1,170 @@
+{
+  "spec_version": "1.5.0",
+  "since": "1.5.0",
+  "name": "hold/budget-daily",
+  "description": "An exhausted daily budget carries the first minute of the user's next local day.",
+  "policy": {
+    "specVersion": "1.0.0",
+    "checks": [
+      {
+        "id": "consent"
+      },
+      {
+        "id": "dailyBudget",
+        "limit": 1
+      }
+    ]
+  },
+  "store_seed": {
+    "budget:u1:2026-09-04": "1",
+    "budget:u2:2026-09-04": "1",
+    "budget:u3:2026-03-07": "1",
+    "budget:u4:2026-11-01": "1",
+    "budget:u5:2026-03-08": "1"
+  },
+  "tests": [
+    {
+      "description": "Istanbul: local midnight is 21:00 UTC",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T09:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "dailyBudget",
+        "nextAllowedAt": "2026-09-04T21:00:00.000Z",
+        "trace": [
+          "consent",
+          "dailyBudget"
+        ]
+      }
+    },
+    {
+      "description": "no time zone: the day is the UTC day",
+      "input": {
+        "user": {
+          "id": "u2",
+          "consent": true
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T09:00:30Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "dailyBudget",
+        "nextAllowedAt": "2026-09-05T00:00:00.000Z",
+        "trace": [
+          "consent",
+          "dailyBudget"
+        ]
+      }
+    },
+    {
+      "description": "Havana: midnight on 2026-03-08 does not exist, so the new day starts at 01:00 local, 05:00 UTC",
+      "input": {
+        "user": {
+          "id": "u3",
+          "consent": true,
+          "timezone": "America/Havana"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-03-07T20:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "dailyBudget",
+        "nextAllowedAt": "2026-03-08T05:00:00.000Z",
+        "trace": [
+          "consent",
+          "dailyBudget"
+        ]
+      }
+    },
+    {
+      "description": "New York on the 25-hour day, 00:30 EDT: the next day starts at 05:00 UTC",
+      "input": {
+        "user": {
+          "id": "u4",
+          "consent": true,
+          "timezone": "America/New_York"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-11-01T04:30:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "dailyBudget",
+        "nextAllowedAt": "2026-11-02T05:00:00.000Z",
+        "trace": [
+          "consent",
+          "dailyBudget"
+        ]
+      }
+    },
+    {
+      "description": "New York on the 25-hour day, 05:00 EST: the same answer",
+      "input": {
+        "user": {
+          "id": "u4",
+          "consent": true,
+          "timezone": "America/New_York"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-11-01T10:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "dailyBudget",
+        "nextAllowedAt": "2026-11-02T05:00:00.000Z",
+        "trace": [
+          "consent",
+          "dailyBudget"
+        ]
+      }
+    },
+    {
+      "description": "New York on the 23-hour day, 00:30 EST: the clocks jump before the next midnight, so the next day starts at 04:00 UTC, not 05:00",
+      "input": {
+        "user": {
+          "id": "u5",
+          "consent": true,
+          "timezone": "America/New_York"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-03-08T05:30:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "dailyBudget",
+        "nextAllowedAt": "2026-03-09T04:00:00.000Z",
+        "trace": [
+          "consent",
+          "dailyBudget"
+        ]
+      }
+    }
+  ]
+}

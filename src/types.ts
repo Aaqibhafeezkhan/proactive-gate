@@ -140,6 +140,13 @@ export interface Check {
   shadow?: boolean;
   run(ctx: CheckContext): Promise<CheckOutcome> | CheckOutcome;
   /**
+   * Called only after this check rejected the candidate. Returns the earliest instant at which
+   * this check would stop rejecting it, or null when the check cannot say. It reads no store
+   * and never changes a decision; the gate ignores a throw, a null and an instant that is not
+   * after `now`.
+   */
+  nextAllowedAt?(ctx: CheckContext): Promise<Date | null> | Date | null;
+  /**
    * Budget-like checks consume one unit at commit time. Return false when the
    * unit was not available (a concurrent delivery took it). The gate calls
    * consume() in check order, once per decision.
@@ -172,6 +179,14 @@ export interface Decision {
   deferredBy?: string;
   /** When to evaluate again, when deferred. */
   retryAt?: Date;
+  /**
+   * Earliest instant at which the check that denied this candidate would stop denying it: the
+   * end of quiet hours, the snooze end, or the reset of a daily, weekly or monthly budget. A
+   * lower bound, not a promise: a later check can still deny at that instant, so evaluate again
+   * then. Absent when allowed, when the denying check cannot say, and when a shadowed check
+   * would have denied. For a deferred decision it equals `retryAt`.
+   */
+  nextAllowedAt?: Date;
   /** Human-readable reason, when rejected or deferred. */
   reason?: string;
   /** Checks in shadow mode that would have rejected or deferred. */

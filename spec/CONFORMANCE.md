@@ -34,6 +34,7 @@ policy against the input at the given `now` and compare:
 | `trace` | exact, the ordered list of check ids that ran |
 | `rejectedBy`, `deferredBy` | exact, including absent |
 | `retryAt`, `deliverAt` | exact, as an ISO instant ending `Z` |
+| `nextAllowedAt` | exact, as an ISO instant ending `Z`; `null` asserts that the decision carries none; compared only when the fixture sets it |
 | `surfaces`, `shadowed`, `nearLimit` | exact, when the fixture asserts them |
 | `reason_pattern` | a regular expression that must match the decision's reason |
 | `commit` | the boolean returned by committing the decision, when the test sets `commit` |

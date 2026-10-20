@@ -1,1 +1,10 @@
 # Fixtures Go does not conform to, one per line: name # reason.
+hold/budget-daily   # pending: nextAllowedAt is implemented in Go three commits later in this series
+hold/budget-monthly   # pending: nextAllowedAt is implemented in Go three commits later in this series
+hold/budget-weekly   # pending: nextAllowedAt is implemented in Go three commits later in this series
+hold/first-denying-check   # pending: nextAllowedAt is implemented in Go three commits later in this series
+hold/quiet-hours-dst   # pending: nextAllowedAt is implemented in Go three commits later in this series
+hold/quiet-hours-end   # pending: nextAllowedAt is implemented in Go three commits later in this series
+hold/quiet-hours-schedule   # pending: nextAllowedAt is implemented in Go three commits later in this series
+hold/snooze-defer   # pending: nextAllowedAt is implemented in Go three commits later in this series
+hold/snooze-end   # pending: nextAllowedAt is implemented in Go three commits later in this series

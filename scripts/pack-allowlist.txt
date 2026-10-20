@@ -75,6 +75,16 @@ spec/fixtures/cooldown/three-dismissals.json
 spec/fixtures/dedupe/already-delivered.json
 spec/fixtures/dedupe/no-key-skips.json
 spec/fixtures/defer/snooze-as-defer.json
+spec/fixtures/hold/budget-daily.json
+spec/fixtures/hold/budget-monthly.json
+spec/fixtures/hold/budget-weekly.json
+spec/fixtures/hold/first-denying-check.json
+spec/fixtures/hold/no-answer.json
+spec/fixtures/hold/quiet-hours-dst.json
+spec/fixtures/hold/quiet-hours-end.json
+spec/fixtures/hold/quiet-hours-schedule.json
+spec/fixtures/hold/snooze-defer.json
+spec/fixtures/hold/snooze-end.json
 spec/fixtures/mode/allow-list.json
 spec/fixtures/ordering/kill-switch.json
 spec/fixtures/ordering/short-circuit.json

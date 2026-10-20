@@ -1,0 +1,130 @@
+{
+  "spec_version": "1.5.0",
+  "since": "1.5.0",
+  "name": "hold/quiet-hours-schedule",
+  "description": "With a schedule the answer follows the chain of windows: a window that ends where the next begins does not open the gate.",
+  "policy": {
+    "specVersion": "1.0.0",
+    "checks": [
+      {
+        "id": "consent"
+      },
+      {
+        "id": "quietHours",
+        "priorityFloor": "high"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "Friday 19:00: Friday's window ends at midnight, Saturday's begins, so the gate opens at 20:00 Saturday",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "quietHours": {
+            "days": {
+              "fri": {
+                "start": "18:00",
+                "end": "00:00"
+              },
+              "sat": {
+                "start": "00:00",
+                "end": "20:00"
+              }
+            }
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-04T16:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-09-05T17:00:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "Saturday 10:00: only Saturday's window",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "quietHours": {
+            "days": {
+              "fri": {
+                "start": "18:00",
+                "end": "00:00"
+              },
+              "sat": {
+                "start": "00:00",
+                "end": "20:00"
+              }
+            }
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-05T07:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "quietHours",
+        "nextAllowedAt": "2026-09-05T17:00:00.000Z",
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    },
+    {
+      "description": "a date entry replaces the weekday: 2026-09-05 has no quiet hours, so Saturday 10:00 is allowed",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul",
+          "quietHours": {
+            "days": {
+              "fri": {
+                "start": "18:00",
+                "end": "00:00"
+              },
+              "sat": {
+                "start": "00:00",
+                "end": "20:00"
+              }
+            },
+            "dates": {
+              "2026-09-05": null
+            }
+          }
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-05T07:00:00Z"
+      },
+      "expect": {
+        "allowed": true,
+        "nextAllowedAt": null,
+        "trace": [
+          "consent",
+          "quietHours"
+        ]
+      }
+    }
+  ]
+}

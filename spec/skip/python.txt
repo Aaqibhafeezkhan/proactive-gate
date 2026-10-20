@@ -1,1 +1,10 @@
 # Fixtures Python does not conform to, one per line: name # reason.
+hold/budget-daily   # pending: next_allowed_at is implemented two commits later in this series
+hold/budget-monthly   # pending: next_allowed_at is implemented two commits later in this series
+hold/budget-weekly   # pending: next_allowed_at is implemented two commits later in this series
+hold/first-denying-check   # pending: next_allowed_at is implemented two commits later in this series
+hold/quiet-hours-dst   # pending: next_allowed_at is implemented two commits later in this series
+hold/quiet-hours-end   # pending: next_allowed_at is implemented two commits later in this series
+hold/quiet-hours-schedule   # pending: next_allowed_at is implemented two commits later in this series
+hold/snooze-defer   # pending: next_allowed_at is implemented two commits later in this series
+hold/snooze-end   # pending: next_allowed_at is implemented two commits later in this series

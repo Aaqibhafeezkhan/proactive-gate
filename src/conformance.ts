@@ -13,6 +13,8 @@ export interface FixtureExpect {
   rejectedBy?: string;
   deferredBy?: string;
   retryAt?: string;
+  /** An instant, or null to assert that the decision carries none. Not asserted when absent. */
+  nextAllowedAt?: string | null;
   surfaces?: string[];
   deliverAt?: string;
   trace: string[];
@@ -89,6 +91,7 @@ export async function runFixture(fixture: Fixture): Promise<string[]> {
     check("rejectedBy", decision.rejectedBy, e.rejectedBy);
     check("deferredBy", decision.deferredBy, e.deferredBy);
     check("retryAt", iso(decision.retryAt), e.retryAt);
+    if ("nextAllowedAt" in e) check("nextAllowedAt", iso(decision.nextAllowedAt) ?? null, e.nextAllowedAt);
     if (e.surfaces) check("surfaces", decision.surfaces, e.surfaces);
     check("deliverAt", iso(decision.deliverAt), e.deliverAt);
     if (e.shadowed) check("shadowed", decision.shadowed, e.shadowed);

@@ -57,6 +57,26 @@ in order.
 3.5 A check that throws MUST be recorded as `skip` and evaluation continues when the gate fails
 open, or as `reject` and evaluation stops when it fails closed. The default is open.
 
+3.6 A decision that is not allowed MAY carry `nextAllowedAt` (since 1.5.0): the earliest instant at
+which the check that stopped evaluation would stop refusing the same candidate for the same user,
+computed from the inputs and `now` alone. It is a lower bound and not a promise: a check later in
+the order can still refuse at that instant, so the caller evaluates again then. It MUST come from the
+check that stopped evaluation and never from a check in shadow mode. It MUST be absent when the
+decision is allowed, when that check cannot name an instant, and when the instant is not after `now`.
+A deferred decision (3.3) carries its `retryAt` as `nextAllowedAt`.
+
+3.7 The checks that name an instant, and what it is. `snooze`: the user's `snoozedUntil`.
+`quietHours`: the earliest minute after `now` at which no quiet window applies by the user's local
+clock, resolved with 6.4 and 6.5, so a window that ends where the next one begins does not open the
+gate. A window end that falls in a local time that does not exist (the hour a spring-forward change
+skips) resolves to the first minute after the gap. One that falls in a repeated hour resolves to the
+first minute at which the check would pass, even if a later minute of the same hour is quiet again.
+`dailyBudget`, `weeklyBudget`, `monthlyBudget`: the earliest minute after `now` at which the budget's
+store key (5.1) differs, which is the start of the user's next local day, ISO week or month, or of the
+next UTC day, week or month for a user with no zone. Every instant except the snooze's own is a whole
+minute. No other check names an instant in this version, and a check not listed here leaves
+`nextAllowedAt` absent.
+
 ## 4. Shadow mode
 
 4.1 A check with `shadow` true that returns `reject` or `defer` MUST be recorded in the trace

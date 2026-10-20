@@ -1,0 +1,71 @@
+{
+  "spec_version": "1.5.0",
+  "since": "1.5.0",
+  "name": "hold/budget-weekly",
+  "description": "An exhausted weekly budget carries the start of the next ISO week, Monday 00:00 local.",
+  "policy": {
+    "specVersion": "1.0.0",
+    "checks": [
+      {
+        "id": "consent"
+      },
+      {
+        "id": "weeklyBudget",
+        "limit": 1
+      }
+    ]
+  },
+  "store_seed": {
+    "weeklyBudget:u1:2026-W36": "1"
+  },
+  "tests": [
+    {
+      "description": "Wednesday in Istanbul: the next Monday starts at 21:00 UTC on Sunday",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-02T09:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "weeklyBudget",
+        "nextAllowedAt": "2026-09-06T21:00:00.000Z",
+        "trace": [
+          "consent",
+          "weeklyBudget"
+        ]
+      }
+    },
+    {
+      "description": "Sunday evening local, after the week's last UTC midnight: still Monday 00:00 local",
+      "input": {
+        "user": {
+          "id": "u1",
+          "consent": true,
+          "timezone": "Europe/Istanbul"
+        },
+        "candidate": {
+          "id": "c1",
+          "type": "reminder"
+        },
+        "now": "2026-09-06T20:00:00Z"
+      },
+      "expect": {
+        "allowed": false,
+        "rejectedBy": "weeklyBudget",
+        "nextAllowedAt": "2026-09-06T21:00:00.000Z",
+        "trace": [
+          "consent",
+          "weeklyBudget"
+        ]
+      }
+    }
+  ]
+}
