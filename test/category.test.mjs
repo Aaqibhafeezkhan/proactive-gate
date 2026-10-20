@@ -57,3 +57,13 @@ test("pages.yml rebuilds the site when the sentence changes", () => {
 test("the docs site's llms.txt plugin takes its description from the sentence", () => {
   assert.match(read("docs/site/astro.config.mjs"), /starlightLlmsTxt\(\{[\s\S]*?description: CATEGORY/);
 });
+
+test("the README's first paragraph is the sentence, after the pain line", () => {
+  const readme = read("README.md");
+  const lines = readme.split("\n");
+  assert.equal(lines[0], "# proactive-gate");
+  const pain = lines.findIndex((l) => l.startsWith('"My AI agent messages people at night'));
+  assert.ok(pain > 0 && pain < 4, "the pain sentence must be the first line after the title");
+  const paragraph = lines.slice(pain + 1).join("\n").trimStart().split("\n\n")[0];
+  assert.equal(paragraph, sentence);
+});

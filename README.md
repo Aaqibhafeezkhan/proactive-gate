@@ -1,6 +1,28 @@
 # proactive-gate
 
-English | [Türkçe](README.tr.md)
+"My AI agent messages people at night and past their daily limit, and I cannot tell which rule should have stopped it."
+
+proactive-gate is a library that decides whether an AI agent may message a user right now (quiet hours, daily limit, consent, snooze) and records the reason when it may not.
+
+```
+npx proactive-gate simulate
+```
+
+![Terminal recording of npx proactive-gate simulate: a generated week of 171 candidate messages sent with no gate, then through proactive-gate. Without the gate 52 land inside the recipient's own quiet hours; with it, 3.](docs/assets/demo.gif)
+
+The recording is the real output of that command on a generated week (eight users, five time zones, seed 7), not anybody's traffic. It needs no key, no account and no configuration. Method and limits are under [What the simulation shows](#what-the-simulation-shows).
+
+Install it in your project:
+
+```
+npm install proactive-gate        # Node 22 or newer
+pip install proactive-gate        # Python 3.11 or newer
+go get github.com/Bubblegunn/proactive-gate/go@v0.1.0
+```
+
+The Python and Go packages are described in [Python](#python) and [Go](#go). The gate has [adapters](#adapters) for the Vercel AI SDK, Mastra, LangChain and OpenAI Agents, and a Claude Code hook. [Presets](#presets-platform-quotas-and-legal-limits-with-sources) hold platform quotas and legal limits.
+
+[Docs](https://bubblegunn.github.io/proactive-gate/) · [Playground](https://bubblegunn.github.io/proactive-gate/playground/) · [FAQ](https://bubblegunn.github.io/proactive-gate/faq/) · English | [Türkçe](README.tr.md)
 
 <p>
   <img src="https://img.shields.io/npm/v/proactive-gate?style=flat-square&color=111111&label=npm" alt="npm">
@@ -10,39 +32,71 @@ English | [Türkçe](README.tr.md)
   <a href="https://doi.org/10.5281/zenodo.22393512"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22393512-111111?style=flat-square" alt="DOI"></a>
 </p>
 
-Decide whether a proactive AI agent may reach a user right now, and log why not.
+## First decision
 
-A proactive assistant has two halves. The generating half decides what is worth
-saying. The suppressing half decides whether to say it now, later, or never. Almost
-everything written about proactive AI is about the first half. This package is the
-second half: one gate, an ordered list of checks, and a reason for every rejection.
+This runs as pasted. Save it as `first.mjs` in a directory where `npm install proactive-gate` has run (Node 22 or newer), then `node first.mjs`:
 
-```
-npm install proactive-gate
-```
-
-```ts
-import { createGate, defaultChecks, RedisStore } from "proactive-gate";
+```js
+import { createGate, defaultChecks, MemoryStore } from "proactive-gate";
 
 const gate = createGate({
-  store: new RedisStore(redis),                  // MemoryStore() for one instance
+  store: new MemoryStore(),
   checks: defaultChecks({ dailyLimit: 3, quietHoursFloor: "high" }),
-  onDecision: (d) => log.info("gate", d),        // every decision, allowed or not
 });
 
-const decision = await gate.evaluate({ user, candidate });
-if (decision.allowed && (await gate.commit(decision, { user, candidate }))) {
-  await send(decision.surfaces, candidate.payload);
-}
+const user = {
+  id: "ayse",
+  consent: true,
+  timezone: "Europe/Istanbul",
+  quietHours: { start: "22:00", end: "08:00" },
+};
+const candidate = { id: "a1", type: "reminder", priority: "normal" };
+const now = new Date("2026-09-04T00:00:00Z"); // 03:00 in Istanbul
+
+const decision = await gate.evaluate({ user, candidate, now });
+console.log(decision.allowed, decision.rejectedBy);
+console.log(decision.reason);
+console.log(decision.nextAllowedAt?.toISOString());
 ```
 
-## What it changes, before you install anything
+Output:
 
 ```
-npx proactive-gate simulate
+false quietHours
+quiet hours 22:00 to 08:00 (thu 2026-09-03) Europe/Istanbul; priority normal is below the floor (high)
+2026-09-04T05:00:00.000Z
 ```
 
-No key, no account, nothing to configure. It replays one week of an assistant that fires when its
+The message is held because it is 03:00 in Istanbul and its priority is below `high`. `nextAllowedAt` is the first instant quiet hours stop applying: 08:00 in Istanbul is 05:00 UTC. In production, leave `now` out, use `RedisStore`, `SqliteStore` or `PostgresStore` when more than one process sends, and call `gate.commit(decision, input)` right before sending, so the daily budget is consumed atomically ([the budget is enforced at commit](#the-budget-is-enforced-at-commit-not-at-evaluate)).
+
+## How this differs from Cue, notifkit and tcpa-quiet-hours
+
+`npm run compare` runs the same inputs through each tool's own code. Versions, commits, every case and the run date are in [docs/COMPARISON.md](docs/COMPARISON.md), which also keeps the rows proactive-gate loses.
+
+| same inputs | proactive-gate correct | Cue 0.5.4 correct | notifkit 0.1.13 correct | tcpa-quiet-hours 2.1.0 |
+|---|---|---|---|---|
+| Quiet hours: is this instant quiet? | 13 of 13 | 13 of 13 | 13 of 13 | not run |
+| Quiet hours: when may the message go? | 11 of 11 | 10 of 11 | 10 of 11 | not run |
+| US calling hours (TCPA) | 6 of 9 cases give the same answer | not run | not run | reference |
+
+What differs, from the same file:
+
+- The one case where Cue and notifkit answer differently is a quiet window that ends inside the hour a daylight-saving change skips. `nextAllowedAt` is `07:00Z` on 2026-03-08. Cue and notifkit answer `07:30Z`, 30 minutes later than needed, by this repository's definition of the window end.
+- Cue and notifkit are self-hosted servers that also send messages. proactive-gate is a library inside your process. It decides and never sends.
+
+What proactive-gate does not do that these tools do:
+
+- It does not send messages, build digests or ask a human to approve a message. A held message goes back to your code, with `nextAllowedAt` when the check that held it can name the time.
+- On 3 state-rule cases tcpa-quiet-hours blocks the send and proactive-gate allows it, because the `usTcpa` preset encodes the federal 8 a.m. to 9 p.m. window only.
+- Hosted platforms (Novu, Knock, Courier) are not measured: see [proactive-gate vs Novu, Knock and Courier](https://bubblegunn.github.io/proactive-gate/vs-novu-knock-courier/).
+
+## Where this fits
+
+A proactive assistant has two halves. The generating half decides what is worth saying. The suppressing half decides whether to say it now, later, or never. Almost everything written about proactive AI is about the first half. This package is the second half: one gate, an ordered list of checks, and a reason for every rejection.
+
+## What the simulation shows
+
+`npx proactive-gate simulate` needs no key, no account and no configuration. It replays one week of an assistant that fires when its
 own data arrives rather than when the recipient is awake, first with no gate and then through the
 default order, and prints what each one did with every candidate.
 
@@ -81,27 +135,9 @@ The last one is the comparison to run before changing a policy in production: sa
 policies, and the 80 candidates they disagree about listed one by one: 73 where the outcome
 differs, 7 where the outcome matches and the reason does not.
 
-## What this will not do
+## Start from a policy file
 
-This repository is young and grew quickly, so the boundary is written down rather than left to be
-inferred from what happens to be in it.
-
-- **The checks that ship are the policy surface:** twelve in `defaultChecks()` and ten more that
-  run only when a policy or preset names them (`dedupe`, `weeklyBudget`, `monthlyBudget`,
-  `utilityFloor`, `boundedDeferral`, `allowedWindow`, `requiresConsent`, `rateLimit`,
-  `recentInteraction`, `windowBudget`). A new one needs a deployment whose rule these cannot
-  express, not a rule that exists somewhere in the world.
-- **The preset catalogue is frozen at what is merged.** A new preset needs someone who is shipping
-  to that channel, or under that instrument, and who says so on the issue. "This country also has a
-  law" is not the bar, because every country does, and a preset nobody ships against rots unread.
-- **Adapters and stores are frozen on the same terms.** The next one arrives with the person who
-  needs it.
-- **What grows instead is evidence**: the simulator above, the conformance suite, and an
-  implementation of the specification by somebody who is not us.
-- **What will never be here**: anything that needs a server, a hosted account, or reads the content
-  of a message.
-
-Or start from a policy file and the wiring for your framework, in one command:
+Start from a policy file and the wiring for your framework, in one command:
 
 ```
 npx proactive-gate init --preset usTcpa --framework mastra
@@ -867,6 +903,26 @@ await gate.inspect(user);                          // { budgetUsed, dismissals }
 Silence has to be measurable or it becomes an excuse. Log every decision through
 `onDecision`; the allow rate, the top rejection reasons, and the dismissal rate of
 what was allowed are the three numbers that tell you whether the gate is tuned.
+
+## What will not be added
+
+This repository is young and grew quickly, so the boundary is written down rather than left to be
+inferred from what happens to be in it.
+
+- **The checks that ship are the policy surface:** twelve in `defaultChecks()` and ten more that
+  run only when a policy or preset names them (`dedupe`, `weeklyBudget`, `monthlyBudget`,
+  `utilityFloor`, `boundedDeferral`, `allowedWindow`, `requiresConsent`, `rateLimit`,
+  `recentInteraction`, `windowBudget`). A new one needs a deployment whose rule these cannot
+  express, not a rule that exists somewhere in the world.
+- **The preset catalogue is frozen at what is merged.** A new preset needs someone who is shipping
+  to that channel, or under that instrument, and who says so on the issue. "This country also has a
+  law" is not the bar, because every country does, and a preset nobody ships against rots unread.
+- **Adapters and stores are frozen on the same terms.** The next one arrives with the person who
+  needs it.
+- **What grows instead is evidence**: the simulator above, the conformance suite, and an
+  implementation of the specification by somebody who is not us.
+- **What will never be here**: anything that needs a server, a hosted account, or reads the content
+  of a message.
 
 ## What this does not do
 
