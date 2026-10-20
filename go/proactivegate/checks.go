@@ -85,6 +85,9 @@ func snooze(deferOption bool) Check {
 			}
 			return reject(reason), nil
 		},
+		NextAllowedAt: func(ctx *CheckContext) (*time.Time, error) {
+			return parseInstant(ctx.User.SnoozedUntil), nil
+		},
 	}
 }
 
@@ -166,6 +169,12 @@ func quietHours(priorityFloor Priority) Check {
 			}
 			return reject(fmt.Sprintf("quiet hours %s to %s%s %s; priority %s is below the floor (%s)",
 				hit.window.Start, hit.window.End, whose, ctx.User.Timezone, ctx.Priority, priorityFloor)), nil
+		},
+		NextAllowedAt: func(ctx *CheckContext) (*time.Time, error) {
+			if ctx.User.QuietHours == nil || ctx.User.Timezone == "" {
+				return nil, nil
+			}
+			return quietEndsAt(ctx.User.QuietHours, ctx.User.Timezone, ctx.Now)
 		},
 	}
 }
@@ -363,31 +372,48 @@ func monthlyBudgetKey(userID string, now time.Time, timezone string) (string, er
 	return "monthlyBudget:" + userID + ":" + day[:7], nil
 }
 
+// resetsWhenKeyChanges answers NextAllowedAt for a counter keyed by local day,
+// ISO week or month: the counter starts again at the first minute at which its
+// key differs (SPEC 3.7).
+func resetsWhenKeyChanges(keyFor func(userID string, now time.Time, timezone string) (string, error)) func(ctx *CheckContext) (*time.Time, error) {
+	return func(ctx *CheckContext) (*time.Time, error) {
+		return nextKeyChange(ctx.Now, ctx.User.Timezone, func(at time.Time) (string, error) {
+			return keyFor(ctx.User.ID, at, ctx.User.Timezone)
+		})
+	}
+}
+
 // dailyBudget allows at most limit deliveries per user per local day.
 func dailyBudget(o budgetOptions) Check {
-	return budget("dailyBudget", "daily budget", 5,
+	c := budget("dailyBudget", "daily budget", 5,
 		func(ctx *CheckContext) (string, error) { return budgetKey(ctx.User.ID, ctx.Now, ctx.User.Timezone) },
 		2*daySeconds, o)
+	c.NextAllowedAt = resetsWhenKeyChanges(budgetKey)
+	return c
 }
 
 // weeklyBudget allows at most limit deliveries per user per local ISO week.
 // The counter resets on Monday morning in the user's zone.
 func weeklyBudget(o budgetOptions) Check {
-	return budget("weeklyBudget", "weekly budget", 20,
+	c := budget("weeklyBudget", "weekly budget", 20,
 		func(ctx *CheckContext) (string, error) {
 			return weeklyBudgetKey(ctx.User.ID, ctx.Now, ctx.User.Timezone)
 		},
 		8*daySeconds, o)
+	c.NextAllowedAt = resetsWhenKeyChanges(weeklyBudgetKey)
+	return c
 }
 
 // monthlyBudget allows at most limit deliveries per user per local calendar
 // month.
 func monthlyBudget(o budgetOptions) Check {
-	return budget("monthlyBudget", "monthly budget", 60,
+	c := budget("monthlyBudget", "monthly budget", 60,
 		func(ctx *CheckContext) (string, error) {
 			return monthlyBudgetKey(ctx.User.ID, ctx.Now, ctx.User.Timezone)
 		},
 		32*daySeconds, o)
+	c.NextAllowedAt = resetsWhenKeyChanges(monthlyBudgetKey)
+	return c
 }
 
 func dedupeKeyFor(userID, key string) string { return "dedupe:" + userID + ":" + key }

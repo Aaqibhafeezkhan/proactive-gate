@@ -101,7 +101,7 @@ func (g *Gate) Evaluate(input EvaluateInput) *Decision {
 	surfaces := pickSurfaces(input.User, input.Candidate)
 	var deliverAt *time.Time
 
-	finish := func(allowed bool, rejectedBy, deferredBy string, retryAt *time.Time, reason string) *Decision {
+	finish := func(allowed bool, rejectedBy, deferredBy string, retryAt *time.Time, reason string, nextAllowedAt *time.Time) *Decision {
 		d := &Decision{
 			ID:          fmt.Sprintf("%s:%s:%s#%d", input.User.ID, input.Candidate.ID, isoMillis(now), g.sequence.Add(1)),
 			Allowed:     allowed,
@@ -116,6 +116,8 @@ func (g *Gate) Evaluate(input EvaluateInput) *Decision {
 			DeferredBy:  deferredBy,
 			RetryAt:     retryAt,
 			Reason:      reason,
+
+			NextAllowedAt: nextAllowedAt,
 		}
 		if allowed {
 			d.DeliverAt = deliverAt
@@ -123,6 +125,20 @@ func (g *Gate) Evaluate(input EvaluateInput) *Decision {
 			d.Surfaces = []string{}
 		}
 		return d
+	}
+
+	// holdFor asks the check that denied when it would stop denying. An error,
+	// a nil and an instant that is not after now are no answer: a failing hook
+	// must not turn a refusal into an error.
+	holdFor := func(check Check, ctx *CheckContext) *time.Time {
+		if check.NextAllowedAt == nil {
+			return nil
+		}
+		at, err := check.NextAllowedAt(ctx)
+		if err != nil || at == nil || !at.After(now) {
+			return nil
+		}
+		return at
 	}
 
 	for _, check := range g.checks {
@@ -140,7 +156,7 @@ func (g *Gate) Evaluate(input EvaluateInput) *Decision {
 		if err != nil {
 			if g.onStoreError == "closed" {
 				trace = append(trace, TraceEntry{ID: check.ID, Outcome: OutcomeReject, Reason: fmt.Sprintf("check threw (%s); failing closed", err), Ms: ms})
-				return finish(false, check.ID, "", nil, fmt.Sprintf("check %q failed and the gate fails closed: %s", check.ID, err))
+				return finish(false, check.ID, "", nil, fmt.Sprintf("check %q failed and the gate fails closed: %s", check.ID, err), nil)
 			}
 			trace = append(trace, TraceEntry{ID: check.ID, Outcome: OutcomeSkip, Reason: fmt.Sprintf("check threw (%s); failing open", err), Ms: ms})
 			continue
@@ -166,9 +182,13 @@ func (g *Gate) Evaluate(input EvaluateInput) *Decision {
 		}
 		switch outcome.Kind {
 		case OutcomeReject:
-			return finish(false, check.ID, "", nil, outcome.Reason)
+			return finish(false, check.ID, "", nil, outcome.Reason, holdFor(check, ctx))
 		case OutcomeDefer:
-			return finish(false, "", check.ID, outcome.RetryAt, outcome.Reason)
+			var nextAllowedAt *time.Time
+			if outcome.RetryAt != nil && outcome.RetryAt.After(now) {
+				nextAllowedAt = outcome.RetryAt
+			}
+			return finish(false, "", check.ID, outcome.RetryAt, outcome.Reason, nextAllowedAt)
 		case OutcomeAdjust:
 			if outcome.DeliverAt != nil {
 				at := *outcome.DeliverAt
@@ -179,7 +199,7 @@ func (g *Gate) Evaluate(input EvaluateInput) *Decision {
 			}
 		}
 	}
-	return finish(true, "", "", nil, "")
+	return finish(true, "", "", nil, "", nil)
 }
 
 // Commit consumes one unit of every budget-like check, in order, and returns

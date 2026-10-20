@@ -227,6 +227,12 @@ type Check struct {
 	// Consume is set on budget-like checks: the gate calls it once per commit,
 	// in check order, and a false return refuses the commit.
 	Consume func(ctx *CheckContext) (bool, error)
+	// NextAllowedAt is called only after this check rejected the candidate. It
+	// returns the earliest instant at which the check would stop rejecting it,
+	// or nil when the check cannot say (SPEC 3.6). It reads no store and never
+	// changes a decision; the gate ignores an error, a nil and an instant that
+	// is not after Now.
+	NextAllowedAt func(ctx *CheckContext) (*time.Time, error)
 }
 
 // TraceEntry records one check that ran, in order.
@@ -258,7 +264,15 @@ type Decision struct {
 	RejectedBy string     `json:"rejectedBy,omitempty"`
 	DeferredBy string     `json:"deferredBy,omitempty"`
 	RetryAt    *time.Time `json:"retryAt,omitempty"`
-	Reason     string     `json:"reason,omitempty"`
+	// NextAllowedAt is the earliest instant at which the check that denied this
+	// candidate would stop denying it (SPEC 3.6): the end of quiet hours, the
+	// snooze end, or the reset of a daily, weekly or monthly budget. A lower
+	// bound, not a promise: a later check can still deny at that instant, so
+	// evaluate again then. Nil when allowed, when the denying check cannot say,
+	// and when a shadowed check would have denied. For a deferred decision it
+	// equals RetryAt.
+	NextAllowedAt *time.Time `json:"nextAllowedAt,omitempty"`
+	Reason        string     `json:"reason,omitempty"`
 	// Shadowed lists the checks in shadow mode that would have stopped the run.
 	Shadowed    []string         `json:"shadowed"`
 	NearLimit   []NearLimitEntry `json:"nearLimit"`

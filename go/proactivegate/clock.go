@@ -196,6 +196,114 @@ func isoWeekKey(day string) (string, error) {
 	return fmt.Sprintf("%04d-W%02d", isoYear, week), nil
 }
 
+// quietEndsAt is the earliest minute after now at which quiet hours stop
+// applying (SPEC 3.7), or nil when none is found within sixteen jumps.
+//
+// Each jump moves to the end of the window that is silencing the current local
+// time, using the local clock at that instant. A daylight-saving change
+// between the two instants makes the jump land an hour early (still quiet, so
+// it jumps again) or an hour late (so it steps back one minute at a time to
+// the first open minute). A window end that falls inside a spring-forward gap
+// therefore resolves to the minute the clocks jump to, and a window that ends
+// inside a repeated autumn hour resolves to its first open minute, even
+// though a later minute of the same hour may be quiet again.
+func quietEndsAt(q *QuietHours, timezone string, now time.Time) (*time.Time, error) {
+	start := now.Truncate(time.Minute)
+	at := start
+	for jump := 0; jump < 16; jump++ {
+		minutes, day, err := localClock(at, timezone)
+		if err != nil {
+			return nil, err
+		}
+		hit, err := quietAt(q, day, minutes)
+		if err != nil {
+			return nil, err
+		}
+		if hit == nil {
+			for back := 0; back < 180; back++ {
+				earlier := at.Add(-time.Minute)
+				if !earlier.After(start) {
+					break
+				}
+				beforeMinutes, beforeDay, err := localClock(earlier, timezone)
+				if err != nil {
+					return nil, err
+				}
+				stillQuiet, err := quietAt(q, beforeDay, beforeMinutes)
+				if err != nil {
+					return nil, err
+				}
+				if stillQuiet != nil {
+					break
+				}
+				at = earlier
+			}
+			if at.After(now) {
+				return &at, nil
+			}
+			return nil, nil
+		}
+		end, err := parseHHMM(hit.window.End)
+		if err != nil {
+			return nil, err
+		}
+		untilEnd := ((end-minutes)%1440 + 1440) % 1440
+		if untilEnd == 0 {
+			untilEnd = 1
+		}
+		at = at.Add(time.Duration(untilEnd) * time.Minute)
+	}
+	return nil, nil
+}
+
+// nextKeyChange is the first minute after now at which keyAt answers
+// differently, found by jumping to successive local midnights (UTC midnights
+// when the zone is empty). Counters keyed by local day, ISO week or month
+// reset at the instant their key changes. It returns nil when the key does not
+// change within forty days.
+func nextKeyChange(now time.Time, timezone string, keyAt func(time.Time) (string, error)) (*time.Time, error) {
+	base, err := keyAt(now)
+	if err != nil {
+		return nil, err
+	}
+	start := now.Truncate(time.Minute)
+	at := start
+	for jump := 0; jump < 40; jump++ {
+		var minutes int
+		if timezone != "" {
+			if minutes, _, err = localClock(at, timezone); err != nil {
+				return nil, err
+			}
+		} else {
+			utc := at.UTC()
+			minutes = utc.Hour()*60 + utc.Minute()
+		}
+		at = at.Add(time.Duration(1440-minutes) * time.Minute)
+		key, err := keyAt(at)
+		if err != nil {
+			return nil, err
+		}
+		if key != base {
+			for back := 0; back < 180; back++ {
+				earlier := at.Add(-time.Minute)
+				if !earlier.After(start) {
+					break
+				}
+				earlierKey, err := keyAt(earlier)
+				if err != nil {
+					return nil, err
+				}
+				if earlierKey == base {
+					break
+				}
+				at = earlier
+			}
+			return &at, nil
+		}
+	}
+	return nil, nil
+}
+
 // isoMillis renders an instant the way the fixtures expect it: UTC, always
 // with three millisecond digits, ending in Z.
 func isoMillis(t time.Time) string {

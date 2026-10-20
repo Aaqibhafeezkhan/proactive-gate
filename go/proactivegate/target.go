@@ -89,6 +89,9 @@ func (s *conformanceSession) Evaluate(input conformance.Input) (*conformance.Dec
 	if d.DeliverAt != nil {
 		view.DeliverAt = isoMillis(*d.DeliverAt)
 	}
+	if d.NextAllowedAt != nil {
+		view.NextAllowedAt = isoMillis(*d.NextAllowedAt)
+	}
 	return view, nil
 }
 

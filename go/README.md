@@ -2,10 +2,11 @@
 
 An independent implementation of the behaviour contract in
 [`../spec/SPEC.md`](../spec/SPEC.md), written against the fixtures rather than
-ported from the TypeScript source. It targets spec version **1.4.2**, pinned
-by the `spec/v1.4.2` tag, and passes all 58 fixtures in
+ported from the TypeScript source. It targets spec version **1.5.0**, pinned
+by the `spec/v1.5.0` tag, and passes all 68 fixtures in
 [`../spec/fixtures`](../spec/fixtures) with no skips declared in
-[`../spec/skip/go.txt`](../spec/skip/go.txt).
+[`../spec/skip/go.txt`](../spec/skip/go.txt). A denied decision carries
+`NextAllowedAt` (spec 3.6) when the check that denied it can name the instant.
 
 No dependencies beyond the Go standard library. The IANA zone handling reads
 the system time zone database through `time.LoadLocation`, which is part of
