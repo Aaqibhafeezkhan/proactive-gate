@@ -24,17 +24,62 @@ const section = (text, heading) => {
 };
 const differs = section(readme, "## How this differs from Cue, notifkit and tcpa-quiet-hours");
 
-test("the comparison table states the counts COMPARISON.md computed", () => {
-  for (const tool of ["Cue", "notifkit"]) {
-    const quiet = row("Quiet hours: is this instant quiet?", tool);
-    assert.ok(differs.includes(`${quiet.ours} of ${quiet.total}`), `README lacks "${quiet.ours} of ${quiet.total}" for ${tool}`);
-    const next = row("Quiet hours: when may the message go?", tool);
-    assert.ok(differs.includes(`${next.ours} of ${next.total}`), `README lacks ours "${next.ours} of ${next.total}"`);
-    assert.ok(differs.includes(`${next.theirs} of ${next.total}`), `README lacks ${tool} "${next.theirs} of ${next.total}"`);
-  }
-  const tcpa = row("US calling hours (TCPA)", "tcpa-quiet-hours");
-  assert.ok(differs.includes(`${tcpa.ties} of ${tcpa.total} cases give the same answer`), "README lacks the TCPA same-answer count");
-  assert.ok(differs.includes(`${tcpa.loses} state-rule cases`), "README lacks the TCPA loss count");
+// The comparison table, one array of trimmed cells per body row, keyed by the first cell (the label).
+const tableLines = differs.split("\n").filter((l) => l.startsWith("|"));
+const header = tableLines[0].split("|").slice(1, -1).map((c) => c.trim());
+const cellsOf = (line) => line.split("|").slice(1, -1).map((c) => c.trim());
+const body = new Map(tableLines.slice(2).map((l) => [cellsOf(l)[0], cellsOf(l)]));
+const cell = (label, column) => {
+  const cells = body.get(label);
+  assert.ok(cells, `the README table has no row "${label}"`);
+  const i = header.findIndex((h) => h.startsWith(column));
+  assert.ok(i > 0, `the README table has no column "${column}"`);
+  return cells[i];
+};
+const countCell = (r, n) => `${n} of ${r.total}`;
+
+test("the comparison table has the three columns and the rows COMPARISON.md computed", () => {
+  assert.deepEqual(header.slice(0, 1), ["same inputs"]);
+  assert.ok(header.some((h) => h.startsWith("proactive-gate")));
+  assert.ok(header.some((h) => h.startsWith("Cue")));
+  assert.ok(header.some((h) => h.startsWith("notifkit")));
+  assert.ok(header.some((h) => h.startsWith("tcpa-quiet-hours")));
+  assert.equal(body.size, 3);
+});
+
+test("the quiet-hours rows state each tool's count per cell", () => {
+  const instant = "Quiet hours: is this instant quiet?";
+  const next = "Quiet hours: when may the message go?";
+  const a = row(instant, "Cue");
+  const b = row(instant, "notifkit");
+  assert.equal(cell(instant, "proactive-gate"), countCell(a, a.ours));
+  assert.equal(cell(instant, "Cue"), countCell(a, a.theirs));
+  assert.equal(cell(instant, "notifkit"), countCell(b, b.theirs));
+  assert.equal(cell(instant, "tcpa-quiet-hours"), "not run");
+
+  const c = row(next, "Cue");
+  const d = row(next, "notifkit");
+  assert.equal(cell(next, "proactive-gate"), countCell(c, c.ours));
+  assert.equal(cell(next, "Cue"), countCell(c, c.theirs));
+  assert.equal(cell(next, "notifkit"), countCell(d, d.theirs));
+  assert.equal(cell(next, "tcpa-quiet-hours"), "not run");
+});
+
+test("the TCPA row states the same-answer count, the state-row note and the reference cells", () => {
+  const label = "US calling hours (TCPA)";
+  const t = row(label, "tcpa-quiet-hours");
+  assert.equal(
+    cell(label, "proactive-gate"),
+    `${t.ties} of ${t.total} cases give the same answer (${t.loses} state rows have no independent answer)`,
+  );
+  assert.equal(cell(label, "Cue"), "not run");
+  assert.equal(cell(label, "notifkit"), "not run");
+  assert.equal(cell(label, "tcpa-quiet-hours"), "reference");
+});
+
+test("the README names the three state-rule losses in prose", () => {
+  const t = row("US calling hours (TCPA)", "tcpa-quiet-hours");
+  assert.ok(differs.includes(`${t.loses} state-rule cases`), "README lacks the TCPA loss count");
 });
 
 test("the daylight-saving example quotes the two answers COMPARISON.md printed", () => {
@@ -45,6 +90,7 @@ test("the daylight-saving example quotes the two answers COMPARISON.md printed",
   const theirs = /(\d\d:\d\dZ)/.exec(cells[4])[1];
   assert.notEqual(ours, theirs);
   assert.ok(differs.includes(`\`${ours}\``) && differs.includes(`\`${theirs}\``), "README does not quote both times");
+  assert.ok(differs.includes("answer later than proactive-gate"), "README does not say Cue and notifkit answer later");
 });
 
 test("the comparison links the file and states the losses", () => {

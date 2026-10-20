@@ -77,11 +77,11 @@ The message is held because it is 03:00 in Istanbul and its priority is below `h
 |---|---|---|---|---|
 | Quiet hours: is this instant quiet? | 13 of 13 | 13 of 13 | 13 of 13 | not run |
 | Quiet hours: when may the message go? | 11 of 11 | 10 of 11 | 10 of 11 | not run |
-| US calling hours (TCPA) | 6 of 9 cases give the same answer | not run | not run | reference |
+| US calling hours (TCPA) | 6 of 9 cases give the same answer (3 state rows have no independent answer) | not run | not run | reference |
 
 What differs, from the same file:
 
-- The one case where Cue and notifkit answer differently is a quiet window that ends inside the hour a daylight-saving change skips. `nextAllowedAt` is `07:00Z` on 2026-03-08. Cue and notifkit answer `07:30Z`, 30 minutes later than needed, by this repository's definition of the window end.
+- The one case where Cue and notifkit answer later than proactive-gate is a quiet window that ends inside the hour a daylight-saving change skips. `nextAllowedAt` is `07:00Z` on 2026-03-08. Cue and notifkit answer `07:30Z`, 30 minutes later than needed, by this repository's definition of the window end.
 - Cue and notifkit are self-hosted servers that also send messages. proactive-gate is a library inside your process. It decides and never sends.
 
 What proactive-gate does not do that these tools do:
