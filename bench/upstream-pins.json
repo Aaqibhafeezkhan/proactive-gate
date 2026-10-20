@@ -1,0 +1,35 @@
+{
+  "pydantic": "2.14.1",
+  "tools": [
+    {
+      "name": "cue",
+      "title": "Cue",
+      "repo": "https://github.com/murtazox04/Cue.git",
+      "sha": "2433b239f84c73ca297081476ef2d85fa02d86e4",
+      "version": "0.5.4",
+      "licence": "MIT",
+      "copyright": "Copyright (c) 2026 Murtazo Xurramov",
+      "kind": "self-hosted server (Python): attention budgets, quiet hours, digests, approvals, MCP"
+    },
+    {
+      "name": "notifkit",
+      "title": "notifkit",
+      "repo": "https://github.com/devkitshq/notifkit.git",
+      "sha": "5f109943accbde7e011194ecc3ad6ad5a9993ee7",
+      "version": "0.1.13",
+      "licence": "MIT",
+      "copyright": "Copyright (c) 2026 devkitshq",
+      "kind": "self-hosted notification server (TypeScript): channels, preferences, quiet hours, MCP"
+    },
+    {
+      "name": "tcpa",
+      "title": "tcpa-quiet-hours",
+      "repo": "https://github.com/drewthomas00/tcpa-quiet-hours.git",
+      "sha": "8c87dd1358253d03a514247537b3a00d4a62b225",
+      "version": "2.1.0",
+      "licence": "MIT",
+      "copyright": "Copyright (c) 2026 Drew Thomas",
+      "kind": "library (JavaScript): US TCPA calling hours with state rules"
+    }
+  ]
+}

@@ -12,3 +12,6 @@ __pycache__/
 
 # uv writes this when the Python package is run locally; the library pins nothing.
 python/uv.lock
+
+# Other tools downloaded by npm run compare:fetch: read and run, never committed.
+_upstream/

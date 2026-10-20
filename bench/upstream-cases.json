@@ -1,0 +1,28 @@
+{
+  "quiet": [
+    { "name": "istanbul-evening", "timezone": "Europe/Istanbul", "window": ["22:00", "08:00"], "now": "2026-09-04T20:30:00Z", "quiet": true, "next": "2026-09-05T05:00:00.000Z" },
+    { "name": "istanbul-small-hours", "timezone": "Europe/Istanbul", "window": ["22:00", "08:00"], "now": "2026-09-04T00:00:00Z", "quiet": true, "next": "2026-09-04T05:00:00.000Z" },
+    { "name": "same-day-window", "timezone": "Europe/Istanbul", "window": ["13:00", "14:00"], "now": "2026-09-04T10:15:00Z", "quiet": true, "next": "2026-09-04T11:00:00.000Z" },
+    { "name": "window-start-minute", "timezone": "Europe/Istanbul", "window": ["22:00", "08:00"], "now": "2026-09-04T19:00:00Z", "quiet": true, "next": "2026-09-05T05:00:00.000Z" },
+    { "name": "minute-before-start", "timezone": "Europe/Istanbul", "window": ["22:00", "08:00"], "now": "2026-09-04T18:59:00Z", "quiet": false, "next": null },
+    { "name": "one-minute-before-end", "timezone": "Europe/Istanbul", "window": ["22:00", "08:00"], "now": "2026-09-05T04:59:00Z", "quiet": true, "next": "2026-09-05T05:00:00.000Z" },
+    { "name": "window-end-minute", "timezone": "Europe/Istanbul", "window": ["22:00", "08:00"], "now": "2026-09-05T05:00:00Z", "quiet": false, "next": null },
+    { "name": "kathmandu-utc+05:45", "timezone": "Asia/Kathmandu", "window": ["22:00", "08:00"], "now": "2026-09-04T17:15:00Z", "quiet": true, "next": "2026-09-05T02:15:00.000Z" },
+    { "name": "lord-howe-30-minute-dst", "timezone": "Australia/Lord_Howe", "window": ["22:00", "08:00"], "now": "2026-10-03T12:30:00Z", "quiet": true, "next": "2026-10-03T21:00:00.000Z" },
+    { "name": "spring-forward-end-0800", "timezone": "America/New_York", "window": ["22:00", "08:00"], "now": "2026-03-08T04:00:00Z", "quiet": true, "next": "2026-03-08T12:00:00.000Z" },
+    { "name": "spring-forward-end-in-the-gap", "timezone": "America/New_York", "window": ["22:00", "02:30"], "now": "2026-03-08T04:00:00Z", "quiet": true, "next": "2026-03-08T07:00:00.000Z" },
+    { "name": "fall-back-end-0300", "timezone": "America/New_York", "window": ["22:00", "03:00"], "now": "2026-11-01T04:00:00Z", "quiet": true, "next": "2026-11-01T08:00:00.000Z" },
+    { "name": "fall-back-end-in-the-repeated-hour", "timezone": "America/New_York", "window": ["22:00", "01:30"], "now": "2026-11-01T04:00:00Z", "quiet": true, "next": "2026-11-01T05:30:00.000Z" }
+  ],
+  "tcpa": [
+    { "name": "federal-07:59", "timezone": "America/New_York", "now": "2026-09-04T11:59:00Z", "eligible": false, "basis": "47 CFR 64.1200(c)(1): not before 8 a.m." },
+    { "name": "federal-08:00", "timezone": "America/New_York", "now": "2026-09-04T12:00:00Z", "eligible": true, "basis": "47 CFR 64.1200(c)(1)" },
+    { "name": "federal-20:59", "timezone": "America/New_York", "now": "2026-09-05T00:59:00Z", "eligible": true, "basis": "47 CFR 64.1200(c)(1)" },
+    { "name": "federal-21:00", "timezone": "America/New_York", "now": "2026-09-05T01:00:00Z", "eligible": false, "basis": "47 CFR 64.1200(c)(1): not after 9 p.m." },
+    { "name": "federal-08:00-on-spring-forward-day", "timezone": "America/New_York", "now": "2026-03-08T12:00:00Z", "eligible": true, "basis": "47 CFR 64.1200(c)(1)" },
+    { "name": "federal-07:59-on-spring-forward-day", "timezone": "America/New_York", "now": "2026-03-08T11:59:00Z", "eligible": false, "basis": "47 CFR 64.1200(c)(1)" },
+    { "name": "maryland-20:30", "timezone": "America/New_York", "zip": "21201", "now": "2026-09-05T00:30:00Z", "eligible": null, "basis": "state rule bundled by tcpa-quiet-hours; not re-read here" },
+    { "name": "texas-sunday-10:00", "timezone": "America/Chicago", "zip": "75001", "now": "2026-09-06T15:00:00Z", "eligible": null, "basis": "state rule bundled by tcpa-quiet-hours; not re-read here" },
+    { "name": "alabama-sunday-13:00", "timezone": "America/Chicago", "zip": "35004", "now": "2026-09-06T18:00:00Z", "eligible": null, "basis": "state rule bundled by tcpa-quiet-hours; not re-read here" }
+  ]
+}
