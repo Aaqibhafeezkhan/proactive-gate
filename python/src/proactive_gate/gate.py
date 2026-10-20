@@ -165,9 +165,9 @@ class Evaluation:
             return None
         try:
             at = hook(ctx)
+            return at if at is not None and at > self.now else None
         except BaseException:  # noqa: BLE001 - an answer that fails is no answer, never a failed decision
             return None
-        return at if at is not None and at > self.now else None
 
     def _maybe_finish(self) -> None:
         if self._index >= len(self.checks):

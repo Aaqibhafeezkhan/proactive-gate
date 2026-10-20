@@ -53,7 +53,7 @@ instant that check would stop refusing.
 | `dailyBudget`, `weeklyBudget`, `monthlyBudget` | the first minute of the user's next local day, ISO week or month (the UTC one without a time zone) |
 | a deferred decision | `retryAt` |
 
-Every other check leaves the field absent, and so does an allowed decision. The answer follows
+Every other built-in check leaves the field absent, and so does an allowed decision. The answer follows
 the local clock, so a window that ends at 02:30 on the night the clocks skip from 02:00 to 03:00
 resolves to 03:00, and one that ends inside the hour that happens twice resolves to its first
 open minute.

@@ -85,6 +85,12 @@ def test_allowed_shadowed_and_unanswering_checks_carry_none() -> None:
     assert evaluate([DeniesWithoutAnAnswer()]) == (False, "plain", None)
 
 
+def test_a_naive_datetime_answer_is_no_answer_and_the_decision_is_still_produced() -> None:
+    naive = datetime(2026, 9, 4, 12, 0)
+    decision = Gate([Denies("c", naive)]).evaluate(EvaluateInput(USER, CANDIDATE, NOW))
+    assert (decision.allowed, decision.rejected_by, decision.next_allowed_at) == (False, "c", None)
+
+
 class Deferring(BaseCheck):
     id = "d"
 

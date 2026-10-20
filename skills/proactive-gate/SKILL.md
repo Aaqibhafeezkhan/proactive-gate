@@ -37,7 +37,14 @@ const gate = createGate({ policy, store: new MemoryStore() });
 const input = { user, candidate, now: new Date() };
 const decision = await gate.evaluate(input);
 if (decision.allowed) {
-  if (await gate.commit(decision, input)) await send(candidate, decision.surfaces);
+  if (await gate.commit(decision, input)) {
+    await send(candidate, decision.surfaces);
+  } else {
+    // Another worker took the last budget unit. Evaluate again: the new refusal carries its own nextAllowedAt.
+    const retry = await gate.evaluate({ ...input, now: new Date() });
+    if (retry.nextAllowedAt) hold(candidate, retry.nextAllowedAt);
+    else log(retry.rejectedBy, retry.reason);
+  }
 } else if (decision.nextAllowedAt) {
   hold(candidate, decision.nextAllowedAt);
 } else {
@@ -49,7 +56,7 @@ if (decision.allowed) {
 
 ## What goes in
 
-- The user needs `id` and `consent`. Quiet hours need `timezone` and `quietHours` with `start` and `end` as "HH:MM"; without a time zone the check skips and says so in the trace.
+- The user needs `id` and `consent`. Quiet hours need `timezone` and `quietHours` with `start` and `end` as "HH:MM"; without a time zone the check skips, says so in the trace, and the message is allowed, so a missing zone sends at night.
 - The candidate needs `id` and `type`. `priority` is one of low, normal, high or critical.
 - Never set `consent` to true on the user's behalf. It records what the person agreed to.
 - Take the time zone from the person's profile. Do not guess it.
