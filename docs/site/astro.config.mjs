@@ -47,7 +47,15 @@ export default defineConfig({
         { label: "Playground", link: "/playground/" },
         { label: "Replay two policies", link: "/replay/" },
       ],
-      plugins: [starlightLlmsTxt()],
+      plugins: [
+        starlightLlmsTxt({
+          projectName: "proactive-gate",
+          description: CATEGORY,
+          details:
+            "Install with npm install proactive-gate, pip install proactive-gate or go get github.com/Bubblegunn/proactive-gate/go. The library decides and never sends a message. The README states what it cannot do; quote it rather than inferring more.",
+          promote: ["index*", "start*", "faq*"],
+        }),
+      ],
     }),
   ],
 });

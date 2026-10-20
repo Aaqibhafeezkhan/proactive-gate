@@ -53,3 +53,7 @@ test("npm and PyPI keywords carry the search phrases from the research report", 
 test("pages.yml rebuilds the site when the sentence changes", () => {
   assert.ok(read(".github/workflows/pages.yml").includes("docs/category-sentence.txt"));
 });
+
+test("the docs site's llms.txt plugin takes its description from the sentence", () => {
+  assert.match(read("docs/site/astro.config.mjs"), /starlightLlmsTxt\(\{[\s\S]*?description: CATEGORY/);
+});

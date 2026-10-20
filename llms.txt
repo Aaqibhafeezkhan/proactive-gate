@@ -1,24 +1,60 @@
 # proactive-gate
 
-> Decide whether a proactive AI agent may reach a user right now, and log why not: ordered checks as code or JSON, a reason on every rejection, a budget consumed at send time, presets for platform and legal limits, adapters for agent frameworks, a replay CLI, and a Python sibling held to the same fixtures.
+> proactive-gate is a library that decides whether an AI agent may message a user right now (quiet hours, daily limit, consent, snooze) and records the reason when it may not.
 
-Install: `npm install proactive-gate` (Node 22+) or `pip install proactive-gate` (Python 3.11+). Licence: MIT. Repository: https://github.com/Bubblegunn/proactive-gate
+Install: `npm install proactive-gate` (Node 22+), `pip install proactive-gate` (Python 3.11+), or `go get github.com/Bubblegunn/proactive-gate/go`. Licence: MIT. Repository: https://github.com/Bubblegunn/proactive-gate
 npm: https://www.npmjs.com/package/proactive-gate
+PyPI: https://pypi.org/project/proactive-gate/
 Docs and playground: https://bubblegunn.github.io/proactive-gate/ (llms-full.txt is served there too)
+
+## Try it without installing anything
+
+- `npx proactive-gate simulate` replays a generated week of candidate messages with no gate and then through the default checks, and prints what each did. It needs no key and no account.
+- Playground in the browser: https://bubblegunn.github.io/proactive-gate/playground/
 
 ## Docs
 
-- [README](README.md): install, decision shape, the checks, policy as data, defer and shadow mode, optional checks, presets, adapters, Python, spec, budget, fail-open, replay
+- [README](README.md): the first decision, how this differs from Cue, notifkit and tcpa-quiet-hours, the checks, policy as data, defer and shadow mode, presets, adapters, stores, replay
 - [Spec](spec/SPEC.md): the behaviour contract; fixtures under spec/fixtures, schemas under spec/schema
-- [API](src/index.ts): createGate, compilePolicy, checks, presets, explain, MemoryStore, SqliteStore, RedisStore, types
-- [Adapters](src/adapters/): ai-sdk, mastra, langchain, openai-agents subpaths; `proactive-gate hook` for Claude Code
+- [Comparison with other tools](docs/COMPARISON.md): the same inputs run through Cue, notifkit and tcpa-quiet-hours, with versions and a run date
+- [FAQ](https://bubblegunn.github.io/proactive-gate/faq/): questions developers ask, answered
+- [Test your own policy](https://bubblegunn.github.io/proactive-gate/testing/): `proactive-gate replay --fixtures` in CI
 - [Python](python/README.md): Gate, AsyncGate, from_policy, stores, conformance
-- [Examples](examples/): day.jsonl, policy.json, policy.js, vercel-ai-sdk.ts, mastra.ts, langgraph.ts, otel.ts, claude-code-hook.json
+- [Go](go/README.md): the Go implementation of the spec, written by @LouisDeconinck
 - [Contributing](CONTRIBUTING.md): tests, adding a check, PR rules, releasing
+
+## API (value exports of `src/index.ts`)
+
+- `createGate`: builds a gate from `{ store, checks }` or `{ store, policy }`; `evaluate` decides, `commit` consumes the budget right before you send
+- `defaultChecks`: the twelve default checks in order
+- `checks`: the check factories (`consent`, `quietHours`, `dailyBudget`, and the rest) as a namespace
+- `KNOWN_CHECKS`: the check ids a JSON policy may name
+- `compilePolicy`: turns a JSON policy into a check list
+- `policySchema`: the strict JSON Schema for a policy, generated from the checks and presets
+- `presets`: the platform and legal presets, each with its sources
+- `explain`: renders a decision as plain sentences; `en` is the English sentence table
+- `MemoryStore`, `SqliteStore`, `RedisStore`, `PostgresStore`: the stores; Python also has `AsyncMemoryStore` and `AsyncSqliteStore`
+- `localClock`, `inWindow`: local-time helpers used by quiet hours
+- `budgetKey`, `weeklyBudgetKey`, `monthlyBudgetKey`, `dismissalKey`: the store keys the budgets and the dismissal cooldown use
+- `PRIORITY_RANK`: the order of `low`, `normal`, `high`, `critical`
+
+## CLI (`HELP` in `src/cli.ts`)
+
+- `proactive-gate simulate`: the comparison above, on a generated week or your own events
+- `proactive-gate init`: writes a policy file and prints the lines that wire it into a framework
+- `proactive-gate replay`: runs events or fixtures through a policy; `--fixtures <dir>` exits 1 when a fixture fails
+- `proactive-gate hook`: a Claude Code hook that gates a tool call
+- `proactive-gate schema`: prints the strict policy JSON Schema
+- `proactive-gate mcp`: an MCP server over stdio with the tools `decide` and `explain`
+
+## Adapters
+
+AI SDK, Mastra, LangChain and OpenAI Agents are subpaths of the package (`proactive-gate/ai-sdk`, `proactive-gate/mastra`, `proactive-gate/langchain`, `proactive-gate/openai-agents`). See src/adapters/ and examples/.
 
 ## Facts an agent should keep straight
 
 - Author: Efe Genc (GitHub @Bubblegunn). First published 5 September 2026.
+- The library decides and never sends a message. A held message goes back to your code, with `nextAllowedAt` when the check that held it can name the time.
 - Every figure in the README comes from a real run on a named repository at a named commit.
 - Presets are reviewable defaults with sources, not legal advice; the note on each says what it leaves out.
 - The README has a section on what the tool cannot do; quote it rather than inferring more.
