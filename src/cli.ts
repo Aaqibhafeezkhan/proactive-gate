@@ -27,6 +27,7 @@ import { LOCAL_STREAM_NOTE, formatSimulation } from "./simulate-report.js";
 import { DEMO_WEEK_NOTE, demoWeek, demoWeekPeople } from "./demo-week.js";
 import { FRAMEWORKS, listText, plan } from "./init.js";
 import { policySchema } from "./policy-schema.js";
+import { serveStdio } from "./mcp.js";
 import type { Framework } from "./init.js";
 import type { Gate } from "./gate.js";
 import type { Decision, EvaluateInput, Policy } from "./types.js";
@@ -37,6 +38,7 @@ const HELP = `usage: proactive-gate simulate [events.jsonl] [--policy <file>]...
        proactive-gate replay --fixtures <dir> [--skip <file>]
        proactive-gate hook --policy <file> [--tool <name>]
        proactive-gate schema
+       proactive-gate mcp [--policy <file>]
 
 simulate runs one stream of candidates under two policies and shows what each one did
 with every candidate: sent, held and why, deferred and until when, which budget it spent.
@@ -76,6 +78,13 @@ replay reports what was allowed and why not.
 hook reads a PreToolUse event (JSON) on stdin; when tool_name matches --tool
 (default send_message) it evaluates tool_input.gate = { user, candidate, now? }
 and prints a permissionDecision. Other tools print nothing.
+
+mcp serves the gate to an MCP client over stdio, with two tools: decide (the decision, and with
+commit true the budgets it consumes) and explain (the same decision as sentences). The gate is
+built from --policy, or the default check order, and keeps its counters in memory for the life
+of the process. Register it with a client, for Claude Code:
+
+  claude mcp add proactive-gate -- npx proactive-gate mcp --policy policy.json
 
 schema prints the JSON Schema for policy files, generated from the checks and presets this
 version knows. Point an editor at it for completion and typo errors; it rejects unknown check
@@ -311,6 +320,11 @@ async function main(argv: string[]) {
     }
     await writeFile(out, policy);
     console.log(message);
+    return;
+  }
+  if (command === "mcp") {
+    // stdout carries the protocol and nothing else; diagnostics go to stderr.
+    await serveStdio(await loadPolicy(argValue(argv, "--policy")), { name: "proactive-gate", version: VERSION });
     return;
   }
   if (command === "schema") {

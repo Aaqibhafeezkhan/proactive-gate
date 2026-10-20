@@ -84,6 +84,22 @@ reads the event on stdin and prints a `permissionDecision` for the matching tool
 tools print nothing.
 [`examples/claude-code-hook.json`](https://github.com/Bubblegunn/proactive-gate/blob/main/examples/claude-code-hook.json).
 
+### As an MCP tool
+
+`npx proactive-gate mcp --policy policy.json` serves the gate to any MCP client over stdio. It
+has two tools: `decide` takes `{ user, candidate, now?, commit? }` and returns the decision,
+including `rejectedBy`, `reason` and `nextAllowedAt`; `explain` takes the same input and returns
+the decision as plain sentences. Neither spends a budget unless `decide` is called with
+`commit: true`, which is the call to make when you are about to send. The gate keeps its counters
+in memory for the life of the process.
+
+```
+claude mcp add proactive-gate -- npx proactive-gate mcp --policy policy.json
+```
+
+The server is about 150 lines of JSON-RPC over standard input and output, with no MCP SDK and no
+dependency, and it gives the same answers as the library on every fixture.
+
 ## Python
 
 The same policy file runs in the Python package (`Gate.from_policy`), sync or async, and

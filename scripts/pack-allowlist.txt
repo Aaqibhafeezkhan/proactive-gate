@@ -25,6 +25,8 @@ dist/src/index.d.ts
 dist/src/index.js
 dist/src/init.d.ts
 dist/src/init.js
+dist/src/mcp.d.ts
+dist/src/mcp.js
 dist/src/policy-schema.d.ts
 dist/src/policy-schema.js
 dist/src/policy.d.ts
