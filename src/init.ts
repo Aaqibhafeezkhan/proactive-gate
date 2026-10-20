@@ -114,7 +114,7 @@ export function plan(options: { preset?: string; framework?: Framework; out: str
     "",
     preset
       ? `preset ${options.preset}: ${preset.note}\nsources:\n${preset.sources.map((s) => `  ${s}`).join("\n")}\n`
-      : "no preset: the ten checks above are the default order. `proactive-gate init --list` shows the platform and legal presets.\n",
+      : "no preset: the policy has ten of the twelve default checks (killSwitch and adaptiveTiming need your own flag and model). `proactive-gate init --list` shows the platform and legal presets.\n",
     `wire it in (${framework}):`,
     "",
     snippetFor(framework, options.out),

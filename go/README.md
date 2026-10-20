@@ -67,7 +67,7 @@ func main() {
     years the spec's date format needs below year 1000.
   - `store.go` the `Store` contract, an in-memory implementation, and the key
     prefixing.
-  - `checks.go` the twenty checks a JSON policy can name.
+  - `checks.go` the twenty-two checks a JSON policy can name.
   - `presets.go` the named preset expansions.
   - `policy.go` the JSON policy compiler; unknown check ids and preset names
     are rejected at compile time with the known vocabulary named (spec 7.3).

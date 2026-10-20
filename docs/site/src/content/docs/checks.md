@@ -85,4 +85,4 @@ messages; the cost is that an event refused by an exhausted budget afterwards ha
 claimed its key. The window is fixed from the first claim rather than sliding, and
 defaults to 24 hours, the retry horizon Stripe and Nylas both use.
 
-Spec clauses 5.5 to 5.8 hold both implementations to this.
+Spec clauses 5.5 to 5.8 hold all three implementations to this.

@@ -86,8 +86,11 @@ differs, 7 where the outcome matches and the reason does not.
 This repository is young and grew quickly, so the boundary is written down rather than left to be
 inferred from what happens to be in it.
 
-- **The twelve checks are the policy surface.** A thirteenth needs a deployment whose rule the
-  twelve cannot express, not a rule that exists somewhere in the world.
+- **The checks that ship are the policy surface:** twelve in `defaultChecks()` and ten more that
+  run only when a policy or preset names them (`dedupe`, `weeklyBudget`, `monthlyBudget`,
+  `utilityFloor`, `boundedDeferral`, `allowedWindow`, `requiresConsent`, `rateLimit`,
+  `recentInteraction`, `windowBudget`). A new one needs a deployment whose rule these cannot
+  express, not a rule that exists somewhere in the world.
 - **The preset catalogue is frozen at what is merged.** A new preset needs someone who is shipping
   to that channel, or under that instrument, and who says so on the issue. "This country also has a
   law" is not the bar, because every country does, and a preset nobody ships against rots unread.
@@ -104,7 +107,8 @@ Or start from a policy file and the wiring for your framework, in one command:
 npx proactive-gate init --preset usTcpa --framework mastra
 ```
 
-That writes `proactive-gate.policy.json` with the ten checks in order, appends the
+That writes `proactive-gate.policy.json` with ten of the twelve default checks in order (it leaves
+out `killSwitch`, which needs your own flag, and `adaptiveTiming`, which needs your own model), appends the
 preset you named, and prints the preset's own source next to the few lines that plug
 the gate into that framework. `npx proactive-gate init --list` shows the seventeen
 platform and legal presets and the four frameworks.
@@ -159,7 +163,9 @@ replayable policy in [`examples/policy.json`](examples/policy.json). Docs and a 
 <p align="center"><img src="docs/assets/trace.svg" width="900" alt="Two real decision traces side by side: candidate a1 rejected by quietHours after eight checks, candidate a5 allowed after thirteen, each check with its outcome, reason and cost"></p>
 
 The figure is drawn from the replay's `--json` output by `node scripts/trace-svg.mjs`, every
-line verbatim; the left decision is the one printed above.
+line verbatim; the left decision is the one printed above. Both decisions come from
+`examples/policy.json`, which has thirteen checks: the twelve defaults plus `utilityFloor`.
+The left one stops at the eighth check, `quietHours`.
 
 With one gate and a logged reason, "why was the user not told about this" has an
 answer. With checks scattered through a pipeline, the honest answer is "somewhere,
@@ -755,7 +761,7 @@ reproduces exactly. The race property was checked against a mutant: rewriting
 [`spec/SPEC.md`](spec/SPEC.md) states the behaviour as numbered requirements, and
 [`spec/fixtures`](spec/fixtures) holds language-neutral cases: the DST edge in
 America/New_York, Pacific/Apia, a wall-clock case in 2031, atomic commit, the ISO week,
-deferral, shadow mode, the optional checks and nine presets. The `clock/` area is the
+deferral, shadow mode, the optional checks and nine of the seventeen presets. The `clock/` area is the
 adversarial clock suite: deleted and repeated DST hours, 23- and 25-hour local days, a
 mid-week timezone move, a skipped calendar day in Apia, weeks whose ISO year is not the
 calendar year, a rewound clock, and years below 1000, which both implementations got wrong

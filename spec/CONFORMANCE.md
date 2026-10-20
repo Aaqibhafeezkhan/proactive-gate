@@ -68,7 +68,7 @@ what stops a suite from being updated underneath a claim.
 ## Adding to the suite
 
 A fixture is a contract for every implementation, not only this one. So a change lands in
-`SPEC.md`, in `fixtures/`, and in both implementations, or it does not land. New fixtures carry
+`SPEC.md`, in `fixtures/`, and in all three implementations, or it does not land. New fixtures carry
 `since` set to the version that introduced them, and `spec_version` set to the current one, which
 `test/spec-lint.mjs` checks.
 
@@ -79,11 +79,11 @@ already passes the fixture that exercises it.
 
 ## The honest status of this suite
 
-Two implementations pass it, and the same person wrote both within hours of each other. That is
-weaker evidence than it looks: agreement between two implementations by one author is closer to a
-consistency check than to independent verification. A third implementation, written from `SPEC.md`
-by someone who has not read the source, is what would test whether this document is enough. Until
-that exists, treat the suite as a contract that has been used twice, not as a proven standard.
+Three implementations pass it. The TypeScript and Python ones were written by the same person
+within hours of each other, which is closer to a consistency check than to independent
+verification. The Go module under `go/` was written from `SPEC.md` by an outside contributor,
+@LouisDeconinck, and is held to the same fixtures in CI. That is one independent reading of this
+document. Treat the suite as a contract that has been used three times, not as a proven standard.
 
 ## Implementing this in your language
 
@@ -118,7 +118,7 @@ The twelve checks, the ordering rules, the store contract and the commit-time bu
 optional, because they are what the word conform refers to.
 
 **What we will do with it.** If you say it conforms and the fixtures agree, it goes in the README
-next to the other two implementations, under your name, with the version of the spec it targets.
+next to the existing implementations, under your name, with the version of the spec it targets.
 If it does not conform yet, say which fixtures and it goes in as a work in progress, because an
 honest partial claim is more useful to a reader than an absent one.
 
