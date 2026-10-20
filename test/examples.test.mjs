@@ -38,3 +38,24 @@ test("ai-sdk example answers every approval request with the gate's reason", () 
   assert.match(result.stdout, /denied {3}apr_07 .*\n {9}rejected by trustRamp/);
   assert.match(result.stdout, /denied {3}apr_09 .*\n {9}rejected by consent/);
 });
+
+test("hold-queue example never sends before the time it was told to wait for, and holds a message again when the next check says no", () => {
+  const result = run("../examples/hold-queue.mjs");
+  assert.equal(result.status, 0, result.stderr);
+  const lines = result.stdout.trim().split("\n").filter((l) => l.includes("  hold ") || l.includes("  send "));
+  const waitingUntil = new Map();
+  const heldBy = new Map();
+  for (const line of lines) {
+    const [, at, verb, id, , until, check] = /^(\S+)  (hold|send) (\w+)(  until (\S+) \((\w+)\))?$/.exec(line) ?? [];
+    assert.ok(at, `unparsed line: ${line}`);
+    if (verb === "hold") {
+      waitingUntil.set(id, until);
+      heldBy.set(id, [...(heldBy.get(id) ?? []), check]);
+    } else {
+      assert.ok(waitingUntil.has(id), `${id} was sent without ever being held`);
+      assert.ok(at >= waitingUntil.get(id), `${id} was sent at ${at}, before ${waitingUntil.get(id)}`);
+    }
+  }
+  assert.deepEqual(heldBy.get("c3"), ["quietHours", "dailyBudget", "quietHours"], "c3 is held by quiet hours, then by the exhausted budget, then by quiet hours again");
+  assert.match(result.stdout, /\n3 candidates, 3 sent, c3 was held 3 times\n$/);
+});

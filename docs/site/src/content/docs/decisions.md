@@ -41,6 +41,39 @@ A check returns one of five outcomes.
 `rejectedBy`. Snooze with `{ defer: true }` is the built-in example: the decision says when to
 try again instead of saying no.
 
+## When to ask again
+
+A refused decision from a check that can name the time carries `nextAllowedAt`: the earliest
+instant that check would stop refusing.
+
+| check | `nextAllowedAt` is |
+|---|---|
+| `quietHours` | the first minute after `now` outside the window, by the user's own clock |
+| `snooze` | `user.snoozedUntil` |
+| `dailyBudget`, `weeklyBudget`, `monthlyBudget` | the first minute of the user's next local day, ISO week or month (the UTC one without a time zone) |
+| a deferred decision | `retryAt` |
+
+Every other check leaves the field absent, and so does an allowed decision. The answer follows
+the local clock, so a window that ends at 02:30 on the night the clocks skip from 02:00 to 03:00
+resolves to 03:00, and one that ends inside the hour that happens twice resolves to its first
+open minute.
+
+It is a lower bound, not a promise. A check later in the order can still refuse at that instant,
+so evaluate again then and hold the message again if you have to. If `commit` returns `false`,
+another worker took the last unit of a budget: evaluate again, and the refusal carries its own
+`nextAllowedAt`.
+
+[`examples/hold-queue.mjs`](https://github.com/Bubblegunn/proactive-gate/blob/main/examples/hold-queue.mjs)
+does this with a clock it moves by hand, offline:
+
+```
+node examples/hold-queue.mjs
+```
+
+It holds three messages through quiet hours, sends two, and holds the third again for the
+exhausted daily budget and once more for the next night's quiet hours before it goes out. The
+Python field is `decision.next_allowed_at`.
+
 ## The same decision, in sentences
 
 `decision.reason` is written for the engineer holding the trace. `explain(decision)` renders
