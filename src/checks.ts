@@ -120,6 +120,67 @@ export function quietAt(quiet: QuietWindow | QuietSchedule, day: string, minutes
   return null;
 }
 
+const MINUTE_MS = 60_000;
+const floorMinute = (at: Date) => new Date(Math.floor(at.getTime() / MINUTE_MS) * MINUTE_MS);
+
+/**
+ * The earliest minute after `now` at which quiet hours stop applying, or null when none is
+ * found within sixteen jumps.
+ *
+ * Each jump moves to the end of the window that is silencing the current local time, using the
+ * local clock at that instant. A daylight-saving change between the two instants makes the jump
+ * land an hour early (still quiet, so it jumps again) or an hour late (so it steps back one
+ * minute at a time to the first open minute). A window end that falls inside a spring-forward
+ * gap therefore resolves to the minute the clocks jump to, and a window that ends inside a
+ * repeated autumn hour resolves to its first open minute, even though a later minute of the same
+ * hour may be quiet again.
+ */
+export function quietEndsAt(quiet: QuietWindow | QuietSchedule, timezone: string, now: Date): Date | null {
+  const start = floorMinute(now);
+  let at = start;
+  for (let jump = 0; jump < 16; jump++) {
+    const { minutes, day } = localClock(at, timezone);
+    const hit = quietAt(quiet, day, minutes);
+    if (!hit) {
+      for (let back = 0; back < 180; back++) {
+        const earlier = new Date(at.getTime() - MINUTE_MS);
+        if (earlier <= start) break;
+        const before = localClock(earlier, timezone);
+        if (quietAt(quiet, before.day, before.minutes)) break;
+        at = earlier;
+      }
+      return at > now ? at : null;
+    }
+    const untilEnd = (((parseHHMM(hit.window.end) - minutes) % 1440) + 1440) % 1440 || 1;
+    at = new Date(at.getTime() + untilEnd * MINUTE_MS);
+  }
+  return null;
+}
+
+/**
+ * The first minute after `now` at which `keyAt` answers differently, found by jumping to
+ * successive local midnights. Used for counters keyed by local day, ISO week or month, whose
+ * reset is the instant their key changes. Returns null when the key does not change within forty days.
+ */
+export function nextKeyChange(now: Date, timezone: string | undefined, keyAt: (at: Date) => string): Date | null {
+  const base = keyAt(now);
+  const start = floorMinute(now);
+  let at = start;
+  for (let jump = 0; jump < 40; jump++) {
+    const minutes = timezone ? localClock(at, timezone).minutes : at.getUTCHours() * 60 + at.getUTCMinutes();
+    at = new Date(at.getTime() + (1440 - minutes) * MINUTE_MS);
+    if (keyAt(at) !== base) {
+      for (let back = 0; back < 180; back++) {
+        const earlier = new Date(at.getTime() - MINUTE_MS);
+        if (earlier <= start || keyAt(earlier) === base) break;
+        at = earlier;
+      }
+      return at;
+    }
+  }
+  return null;
+}
+
 /* ------------------------------------------------------------------------ */
 /* The checks, in the order LILA runs them. Compose your own order freely.  */
 /* ------------------------------------------------------------------------ */
@@ -171,6 +232,7 @@ export function snooze(options: { defer?: boolean } = {}): Check {
       const reason = `snoozed until ${until.toISOString()}`;
       return options.defer ? defer(reason, until) : reject(reason);
     },
+    nextAllowedAt: ({ user }) => toDate(user.snoozedUntil),
   };
 }
 
@@ -214,6 +276,7 @@ export function quietHours(options: { priorityFloor?: Priority } = {}): Check {
       const whose = hit.day === day ? "" : ` (${weekdayOf(hit.day)} ${hit.day})`;
       return reject(`quiet hours ${hit.window.start} to ${hit.window.end}${whose} ${user.timezone}; priority ${priority} is below the floor (${floor})`);
     },
+    nextAllowedAt: ({ user, now }) => (user.quietHours && user.timezone ? quietEndsAt(user.quietHours, user.timezone, now) : null),
   };
 }
 
@@ -314,7 +377,7 @@ export interface BudgetOptions {
   nearLimit?: number;
 }
 
-function budget(spec: { id: string; label: string; defaultLimit: number; keyFor: (ctx: CheckContext) => string; ttlSeconds: number }, options: BudgetOptions): BudgetCheck {
+function budget(spec: { id: string; label: string; defaultLimit: number; keyFor: (ctx: CheckContext) => string; ttlSeconds: number; resetsAt?: (ctx: CheckContext) => Date | null }, options: BudgetOptions): BudgetCheck {
   const limit = options.limit ?? spec.defaultLimit;
   const nearAt = Math.max(1, Math.ceil(limit * (options.nearLimit ?? 0.8)));
   const bypass = (priority: Priority) => options.bypassPriority !== undefined && atLeast(priority, options.bypassPriority);
@@ -332,6 +395,7 @@ function budget(spec: { id: string; label: string; defaultLimit: number; keyFor:
       const used = await ctx.store.incr(spec.keyFor(ctx), spec.ttlSeconds);
       return used <= limit;
     },
+    ...(spec.resetsAt ? { nextAllowedAt: spec.resetsAt } : {}),
   };
 }
 
@@ -361,7 +425,7 @@ export const monthlyBudgetKey = (userId: string, now: Date, timezone?: string) =
  * ambient load. Nothing in that work says five.
  */
 export function dailyBudget(options: BudgetOptions = {}): BudgetCheck {
-  return budget({ id: "dailyBudget", label: "daily budget", defaultLimit: 5, keyFor: ({ user, now }) => budgetKey(user.id, now, user.timezone), ttlSeconds: 2 * DAY_SECONDS }, options);
+  return budget({ id: "dailyBudget", label: "daily budget", defaultLimit: 5, keyFor: ({ user, now }) => budgetKey(user.id, now, user.timezone), ttlSeconds: 2 * DAY_SECONDS, resetsAt: ({ user, now }) => nextKeyChange(now, user.timezone, (at) => budgetKey(user.id, at, user.timezone)) }, options);
 }
 
 /**
@@ -373,12 +437,12 @@ export function dailyBudget(options: BudgetOptions = {}): BudgetCheck {
  * existing key.
  */
 export function weeklyBudget(options: BudgetOptions = {}): BudgetCheck {
-  return budget({ id: "weeklyBudget", label: "weekly budget", defaultLimit: 20, keyFor: ({ user, now }) => weeklyBudgetKey(user.id, now, user.timezone), ttlSeconds: 8 * DAY_SECONDS }, options);
+  return budget({ id: "weeklyBudget", label: "weekly budget", defaultLimit: 20, keyFor: ({ user, now }) => weeklyBudgetKey(user.id, now, user.timezone), ttlSeconds: 8 * DAY_SECONDS, resetsAt: ({ user, now }) => nextKeyChange(now, user.timezone, (at) => weeklyBudgetKey(user.id, at, user.timezone)) }, options);
 }
 
 /** At most `limit` deliveries per user per local calendar month. */
 export function monthlyBudget(options: BudgetOptions = {}): BudgetCheck {
-  return budget({ id: "monthlyBudget", label: "monthly budget", defaultLimit: 60, keyFor: ({ user, now }) => monthlyBudgetKey(user.id, now, user.timezone), ttlSeconds: 32 * DAY_SECONDS }, options);
+  return budget({ id: "monthlyBudget", label: "monthly budget", defaultLimit: 60, keyFor: ({ user, now }) => monthlyBudgetKey(user.id, now, user.timezone), ttlSeconds: 32 * DAY_SECONDS, resetsAt: ({ user, now }) => nextKeyChange(now, user.timezone, (at) => monthlyBudgetKey(user.id, at, user.timezone)) }, options);
 }
 
 export const dedupeKeyFor = (userId: string, key: string) => `dedupe:${userId}:${key}`;

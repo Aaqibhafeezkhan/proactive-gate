@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createGate, MemoryStore } from "../dist/src/index.js";
 import { judgeNext, judgeQuiet, judgeTcpa, render, tally } from "../bench/upstream-lib.mjs";
 
 const read = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8"));
@@ -98,4 +99,16 @@ test("the document keeps a row the tool loses, and says how the rows were counte
   assert.match(doc, /## Not run\n\n- \*\*Budgets\.\*\* Different rules\./);
   assert.match(doc, new RegExp(pins.tools[0].sha.slice(0, 12)));
   assert.match(doc, /9\.9\.9/);
+});
+
+test("the stated answers in the cases are the ones proactive-gate itself gives", async () => {
+  // The table judges every tool against these answers. If they drift from what the library does,
+  // the table would be marking the library wrong, or right, against a number nobody checked.
+  for (const c of cases.quiet) {
+    const gate = createGate({ policy: { specVersion: "1.0.0", checks: [{ id: "consent" }, { id: "quietHours" }] }, store: new MemoryStore() });
+    const user = { id: "u", consent: true, timezone: c.timezone, quietHours: { start: c.window[0], end: c.window[1] } };
+    const d = await gate.evaluate({ user, candidate: { id: "c", type: "reminder" }, now: new Date(c.now) });
+    assert.equal(!d.allowed && d.rejectedBy === "quietHours", c.quiet, `${c.name}: quiet`);
+    assert.equal(d.nextAllowedAt?.toISOString() ?? null, c.next, `${c.name}: next`);
+  }
 });

@@ -102,6 +102,16 @@ export function createGate(options: GateOptions | PolicyGateOptions): Gate {
       return decision;
     };
 
+    const holdFor = async (check: Check, ctx: CheckContext): Promise<{ nextAllowedAt?: Date }> => {
+      if (!check.nextAllowedAt) return {};
+      try {
+        const at = await check.nextAllowedAt(ctx);
+        return at && at.getTime() > now.getTime() ? { nextAllowedAt: at } : {};
+      } catch {
+        return {};
+      }
+    };
+
     for (const check of checks) {
       const ctx: CheckContext = { user: input.user, candidate: input.candidate, now, priority, store, surfaces };
       await callHook("before", ctx, check);
@@ -136,8 +146,8 @@ export function createGate(options: GateOptions | PolicyGateOptions): Gate {
         shadowed.push(check.id);
         continue;
       }
-      if (outcome.kind === "reject") return finish({ rejectedBy: check.id, reason: outcome.reason });
-      if (outcome.kind === "defer") return finish({ deferredBy: check.id, retryAt: outcome.retryAt, reason: outcome.reason });
+      if (outcome.kind === "reject") return finish({ rejectedBy: check.id, reason: outcome.reason, ...(await holdFor(check, ctx)) });
+      if (outcome.kind === "defer") return finish({ deferredBy: check.id, retryAt: outcome.retryAt, reason: outcome.reason, ...(outcome.retryAt.getTime() > now.getTime() ? { nextAllowedAt: outcome.retryAt } : {}) });
       if (outcome.kind === "adjust") {
         if (outcome.deliverAt) deliverAt = outcome.deliverAt;
         if (outcome.surfaces) surfaces = outcome.surfaces;

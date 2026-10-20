@@ -42,20 +42,20 @@ For every case that is quiet, the earliest minute at which the window no longer 
 
 | case | correct answer (UTC) | proactive-gate | Cue | notifkit |
 |---|---|---|---|---|
-| istanbul-evening | 2026-09-05 05:00Z | no answer | 2026-09-05 05:00Z | 2026-09-05 05:00Z |
-| istanbul-small-hours | 2026-09-04 05:00Z | no answer | 2026-09-04 05:00Z | 2026-09-04 05:00Z |
-| same-day-window | 2026-09-04 11:00Z | no answer | 2026-09-04 11:00Z | 2026-09-04 11:00Z |
-| window-start-minute | 2026-09-05 05:00Z | no answer | 2026-09-05 05:00Z | 2026-09-05 05:00Z |
-| one-minute-before-end | 2026-09-05 05:00Z | no answer | 2026-09-05 05:00Z | 2026-09-05 05:00Z |
-| kathmandu-utc+05:45 | 2026-09-05 02:15Z | no answer | 2026-09-05 02:15Z | 2026-09-05 02:15Z |
-| lord-howe-30-minute-dst | 2026-10-03 21:00Z | no answer | 2026-10-03 21:00Z | 2026-10-03 21:00Z |
-| spring-forward-end-0800 | 2026-03-08 12:00Z | no answer | 2026-03-08 12:00Z | 2026-03-08 12:00Z |
-| spring-forward-end-in-the-gap | 2026-03-08 07:00Z | no answer | 2026-03-08 07:30Z (+30 min, later than needed) | 2026-03-08 07:30Z (+30 min, later than needed) |
-| fall-back-end-0300 | 2026-11-01 08:00Z | no answer | 2026-11-01 08:00Z | 2026-11-01 08:00Z |
-| fall-back-end-in-the-repeated-hour | 2026-11-01 05:30Z | no answer | 2026-11-01 05:30Z | 2026-11-01 05:30Z |
+| istanbul-evening | 2026-09-05 05:00Z | 2026-09-05 05:00Z | 2026-09-05 05:00Z | 2026-09-05 05:00Z |
+| istanbul-small-hours | 2026-09-04 05:00Z | 2026-09-04 05:00Z | 2026-09-04 05:00Z | 2026-09-04 05:00Z |
+| same-day-window | 2026-09-04 11:00Z | 2026-09-04 11:00Z | 2026-09-04 11:00Z | 2026-09-04 11:00Z |
+| window-start-minute | 2026-09-05 05:00Z | 2026-09-05 05:00Z | 2026-09-05 05:00Z | 2026-09-05 05:00Z |
+| one-minute-before-end | 2026-09-05 05:00Z | 2026-09-05 05:00Z | 2026-09-05 05:00Z | 2026-09-05 05:00Z |
+| kathmandu-utc+05:45 | 2026-09-05 02:15Z | 2026-09-05 02:15Z | 2026-09-05 02:15Z | 2026-09-05 02:15Z |
+| lord-howe-30-minute-dst | 2026-10-03 21:00Z | 2026-10-03 21:00Z | 2026-10-03 21:00Z | 2026-10-03 21:00Z |
+| spring-forward-end-0800 | 2026-03-08 12:00Z | 2026-03-08 12:00Z | 2026-03-08 12:00Z | 2026-03-08 12:00Z |
+| spring-forward-end-in-the-gap | 2026-03-08 07:00Z | 2026-03-08 07:00Z | 2026-03-08 07:30Z (+30 min, later than needed) | 2026-03-08 07:30Z (+30 min, later than needed) |
+| fall-back-end-0300 | 2026-11-01 08:00Z | 2026-11-01 08:00Z | 2026-11-01 08:00Z | 2026-11-01 08:00Z |
+| fall-back-end-in-the-repeated-hour | 2026-11-01 05:30Z | 2026-11-01 05:30Z | 2026-11-01 05:30Z | 2026-11-01 05:30Z |
 
-Against Cue: proactive-gate wins 0, ties 0, loses 10, both wrong 1.
-Against notifkit: proactive-gate wins 0, ties 0, loses 10, both wrong 1.
+Against Cue: proactive-gate wins 1, ties 10, loses 0.
+Against notifkit: proactive-gate wins 1, ties 10, loses 0.
 
 ## US calling hours (TCPA)
 
@@ -81,8 +81,8 @@ Against tcpa-quiet-hours: proactive-gate wins 0, ties 6, loses 3.
 |---|---|---|---|---|---|
 | Quiet hours: is this instant quiet? | Cue | 0 | 13 | 0 | 0 |
 | Quiet hours: is this instant quiet? | notifkit | 0 | 13 | 0 | 0 |
-| Quiet hours: when may the message go? | Cue | 0 | 0 | 10 | 1 |
-| Quiet hours: when may the message go? | notifkit | 0 | 0 | 10 | 1 |
+| Quiet hours: when may the message go? | Cue | 1 | 10 | 0 | 0 |
+| Quiet hours: when may the message go? | notifkit | 1 | 10 | 0 | 0 |
 | US calling hours (TCPA) | tcpa-quiet-hours | 0 | 6 | 3 | 0 |
 
 ## Not run
