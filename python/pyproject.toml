@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "proactive-gate"
 version = "0.8.2"
-description = "Decide whether a proactive assistant may speak now: ordered checks, budgets, quiet hours, JSON policies, shared conformance fixtures with the TypeScript package."
+description = "proactive-gate is a library that decides whether an AI agent may message a user right now (quiet hours, daily limit, consent, snooze) and records the reason when it may not."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
@@ -14,6 +14,8 @@ keywords = [
   "proactive", "proactive-ai", "proactive-agents", "ai-agents", "llm", "agents",
   "notifications", "notification-policy", "notification-budget", "quiet-hours",
   "consent", "rate-limit", "policy", "policy-engine", "guardrails", "interruption",
+  "notification-throttle", "frequency-cap", "notification-fatigue", "proactive-agent",
+  "do-not-disturb", "tcpa", "timezone", "agent-notification-policy",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",

@@ -4,7 +4,7 @@ name: pages
 on:
   push:
     branches: [main]
-    paths: ["docs/site/**", "src/**", "README.md", ".github/workflows/pages.yml"]
+    paths: ["docs/site/**", "docs/category-sentence.txt", "src/**", "README.md", ".github/workflows/pages.yml"]
   workflow_dispatch:
 permissions:
   contents: read

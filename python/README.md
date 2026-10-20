@@ -1,9 +1,6 @@
 # proactive-gate for Python
 
-Decide whether a proactive assistant may speak to this person right now. Ordered checks
-(consent, mode, snooze, mute, intensity, quiet hours, trust ramp, dismissal cooldown,
-budgets), JSON policies, platform and regulatory presets, and a trace that says which check
-stopped the message and why.
+proactive-gate is a library that decides whether an AI agent may message a user right now (quiet hours, daily limit, consent, snooze) and records the reason when it may not. It has ordered checks (consent, mode, snooze, mute, intensity, quiet hours, trust ramp, dismissal cooldown, budgets), JSON policies, platform and regulatory presets, and a trace that says which check stopped the message and why.
 
 This is the Python sibling of the TypeScript package. Both implement the same behaviour
 contract in [`spec/`](https://github.com/Bubblegunn/proactive-gate/tree/main/spec) and run

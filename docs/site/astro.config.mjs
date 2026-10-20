@@ -2,6 +2,10 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import starlightLlmsTxt from "starlight-llms-txt";
+import { readFileSync } from "node:fs";
+
+/** The one sentence every surface uses; `test/category.test.mjs` checks the others against the same file. */
+const CATEGORY = readFileSync(new URL("../category-sentence.txt", import.meta.url), "utf8").trim();
 
 const SITE = "https://bubblegunn.github.io/proactive-gate";
 const OG_ALT =
@@ -13,7 +17,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "proactive-gate",
-      description: "Decide whether a proactive AI agent may reach a user right now, and log why not.",
+      description: CATEGORY,
       // Every link to this project rendered a blank card: the theme declares
       // twitter:card=summary_large_image but no image existed, so Hacker News, Reddit, X, Slack
       // and LinkedIn all had nothing to show. The card is generated from real replay output by
