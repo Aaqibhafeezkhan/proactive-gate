@@ -35,8 +35,15 @@ npx proactive-gate replay day.jsonl --policy policy.json --commit
 
 `compilePolicy(policy)` is exported for callers that want the check list. An unknown id or
 preset throws and names the known ones; a `specVersion` whose major this package does not
-implement throws too. The JSON Schema lives at
+implement throws too. The JSON Schema for the document's shape lives at
 [`spec/schema/policy.schema.json`](https://github.com/Bubblegunn/proactive-gate/blob/main/spec/schema/policy.schema.json).
+
+A stricter schema is generated from the checks and presets of the version you have installed. It
+rejects an unknown check id, an unknown preset name and an unknown option, which `compilePolicy`
+does not: a misspelt `limt` is ignored there, and the budget silently becomes the default of 5.
+`npx proactive-gate schema` prints it, and the package ships it as
+`proactive-gate/policy.strict.schema.json`. In VS Code, point `json.schemas` at that file, or add
+`"$schema"` to the policy, and the editor completes check ids and options and underlines the typos.
 
 The JavaScript policy (`examples/policy.js`, an ES module exporting a gate) stays as the escape
 hatch for checks that need functions, such as a kill switch that reads your flag service.

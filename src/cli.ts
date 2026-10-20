@@ -26,6 +26,7 @@ import type { SimPolicy } from "./simulate.js";
 import { LOCAL_STREAM_NOTE, formatSimulation } from "./simulate-report.js";
 import { DEMO_WEEK_NOTE, demoWeek, demoWeekPeople } from "./demo-week.js";
 import { FRAMEWORKS, listText, plan } from "./init.js";
+import { policySchema } from "./policy-schema.js";
 import type { Framework } from "./init.js";
 import type { Gate } from "./gate.js";
 import type { Decision, EvaluateInput, Policy } from "./types.js";
@@ -35,6 +36,7 @@ const HELP = `usage: proactive-gate simulate [events.jsonl] [--policy <file>]...
        proactive-gate replay <events.jsonl> [--policy <file>] [--json] [--commit]
        proactive-gate replay --fixtures <dir> [--skip <file>]
        proactive-gate hook --policy <file> [--tool <name>]
+       proactive-gate schema
 
 simulate runs one stream of candidates under two policies and shows what each one did
 with every candidate: sent, held and why, deferred and until when, which budget it spent.
@@ -74,6 +76,10 @@ replay reports what was allowed and why not.
 hook reads a PreToolUse event (JSON) on stdin; when tool_name matches --tool
 (default send_message) it evaluates tool_input.gate = { user, candidate, now? }
 and prints a permissionDecision. Other tools print nothing.
+
+schema prints the JSON Schema for policy files, generated from the checks and presets this
+version knows. Point an editor at it for completion and typo errors; it rejects unknown check
+ids, preset names and options.
 
   -h, --help         this text
   --version          print the version
@@ -305,6 +311,10 @@ async function main(argv: string[]) {
     }
     await writeFile(out, policy);
     console.log(message);
+    return;
+  }
+  if (command === "schema") {
+    console.log(JSON.stringify(policySchema(), null, 2));
     return;
   }
   if (command === "hook") {

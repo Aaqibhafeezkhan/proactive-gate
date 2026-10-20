@@ -34,6 +34,7 @@
       "types": "./dist/src/adapters/openai-agents.d.ts",
       "import": "./dist/src/adapters/openai-agents.js"
     },
+    "./policy.strict.schema.json": "./spec/schema/policy.strict.schema.json",
     "./package.json": "./package.json"
   },
   "bin": {
@@ -48,10 +49,11 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node test/spec-lint.mjs && node --test dist/test/gate.test.js dist/test/conformance.test.js dist/test/presets.test.js dist/test/adapters.test.js dist/test/init.test.js dist/test/properties.test.js dist/test/dedupe.test.js dist/test/simulate.test.js dist/test/simulate-fidelity.test.js dist/test/monotonicity.test.js dist/test/clock-year-padding.test.js dist/test/explain.test.js dist/test/hold.test.js test/main-imports.test.mjs test/compare-upstream.test.mjs test/npm-pack.test.mjs test/release.test.mjs test/examples.test.mjs test/example-imports.test.mjs test/naive.test.mjs test/replay-bundle.test.mjs test/playground-render.test.mjs test/playground-scenarios.test.mjs test/snippet.test.mjs test/suite.test.mjs test/postgres.test.mjs test/redis.test.mjs",
+    "test": "npm run build && node test/spec-lint.mjs && node --test dist/test/gate.test.js dist/test/conformance.test.js dist/test/presets.test.js dist/test/adapters.test.js dist/test/init.test.js dist/test/properties.test.js dist/test/dedupe.test.js dist/test/simulate.test.js dist/test/simulate-fidelity.test.js dist/test/monotonicity.test.js dist/test/clock-year-padding.test.js dist/test/explain.test.js dist/test/hold.test.js dist/test/policy-schema.test.js test/main-imports.test.mjs test/compare-upstream.test.mjs test/npm-pack.test.mjs test/release.test.mjs test/examples.test.mjs test/example-imports.test.mjs test/naive.test.mjs test/replay-bundle.test.mjs test/playground-render.test.mjs test/playground-scenarios.test.mjs test/snippet.test.mjs test/suite.test.mjs test/postgres.test.mjs test/redis.test.mjs",
     "lint": "tsc -p tsconfig.json --noEmit",
     "coverage": "npm run build && node scripts/coverage.mjs",
     "spec-lint": "node test/spec-lint.mjs",
+    "schema": "npm run build && node scripts/policy-schema.mjs",
     "conformance": "npm run build && node dist/src/cli.js replay --fixtures spec/fixtures",
     "prepublishOnly": "npm test",
     "examples": "npm run build && node dist/src/cli.js replay examples/day.jsonl --policy examples/policy.js --commit && node dist/src/cli.js replay examples/day.jsonl --policy examples/policy.json --commit && node examples/mastra/run.mjs && node examples/ai-sdk/run.mjs && node examples/hold-queue.mjs",

@@ -16,7 +16,10 @@ const budgetOptions = (o: Options) => ({ ...opt(num(o, "limit"), "limit"), ...op
 
 /** Every check a JSON policy may name, with the options it reads. */
 export const KNOWN_CHECKS: Record<string, Factory> = {
-  killSwitch: (o) => checks.killSwitch(() => bool(o, "on") === true),
+  killSwitch: (o) => {
+    const on = bool(o, "on") === true;
+    return checks.killSwitch(() => on);
+  },
   consent: () => checks.consent(),
   enabled: () => checks.enabled(),
   mode: (o) => checks.mode({ allow: strs(o, "allow") ?? ["normal"] }),
