@@ -1,0 +1,22 @@
+{
+  "name": "proactive-gate",
+  "version": "0.8.2",
+  "description": "Teaches a coding agent to put quiet hours, message budgets, consent and snooze in front of any message an AI agent sends on its own.",
+  "author": {
+    "name": "Efe Genc",
+    "url": "https://efe-genc-portfolio.vercel.app"
+  },
+  "homepage": "https://bubblegunn.github.io/proactive-gate/",
+  "repository": "https://github.com/Bubblegunn/proactive-gate",
+  "license": "MIT",
+  "keywords": [
+    "proactive-ai",
+    "notifications",
+    "quiet-hours",
+    "rate-limit",
+    "consent",
+    "agents",
+    "skills"
+  ],
+  "skills": "./skills"
+}

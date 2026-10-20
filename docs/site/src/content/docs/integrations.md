@@ -84,6 +84,21 @@ reads the event on stdin and prints a `permissionDecision` for the matching tool
 tools print nothing.
 [`examples/claude-code-hook.json`](https://github.com/Bubblegunn/proactive-gate/blob/main/examples/claude-code-hook.json).
 
+### As a skill and plugin
+
+A skill teaches the coding agent that is writing your code when to put the gate in front of a
+message, which calls to make, and how to read the answer. In Claude Code:
+
+```
+claude plugin marketplace add Bubblegunn/proactive-gate
+claude plugin install proactive-gate@proactive-gate
+```
+
+The skill is `skills/proactive-gate/SKILL.md`, in the repository and in the npm package, so an
+agent that reads skill folders can use it from `node_modules/proactive-gate/skills/proactive-gate`.
+A test checks every API name, option, preset, check id, subcommand and flag in it against what
+the package exports, so the skill cannot describe a function that no longer exists.
+
 ### As an MCP tool
 
 `npx proactive-gate mcp --policy policy.json` serves the gate to any MCP client over stdio. It

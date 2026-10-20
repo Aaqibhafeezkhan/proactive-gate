@@ -1,3 +1,5 @@
+.claude-plugin/marketplace.json
+.claude-plugin/plugin.json
 LICENSE
 README.md
 README.tr.md
@@ -44,6 +46,7 @@ dist/src/stores.js
 dist/src/types.d.ts
 dist/src/types.js
 package.json
+skills/proactive-gate/SKILL.md
 spec/CONFORMANCE.md
 spec/SPEC.md
 spec/SPEC_VERSION

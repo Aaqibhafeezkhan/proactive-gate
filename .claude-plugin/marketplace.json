@@ -1,0 +1,17 @@
+{
+  "name": "proactive-gate",
+  "owner": {
+    "name": "Efe Genc",
+    "url": "https://efe-genc-portfolio.vercel.app"
+  },
+  "description": "A skill that makes an AI agent check quiet hours, message budgets and consent before it messages a person.",
+  "plugins": [
+    {
+      "name": "proactive-gate",
+      "source": "./",
+      "description": "Before the agent sends a message nobody asked for, it asks proactive-gate whether it may, and acts on the answer: send, hold until nextAllowedAt, or drop with a reason.",
+      "category": "development",
+      "keywords": ["proactive-ai", "quiet-hours", "notification-budget", "consent", "agents"]
+    }
+  ]
+}
