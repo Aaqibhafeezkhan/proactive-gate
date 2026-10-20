@@ -6,6 +6,7 @@ import { createGate, MemoryStore } from "../src/index.js";
 import { explain } from "../src/index.js";
 import { loadFixtures } from "../src/conformance.js";
 import { createMcpServer, decisionToJson, TOOLS } from "../src/mcp.js";
+import type { Gate } from "../src/gate.js";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const cli = `${root}dist/src/cli.js`;
@@ -162,4 +163,26 @@ test("a hostile client gets protocol errors or readable tool errors, never a cra
   const explained = (await hostile(tool(6, "explain", args))) as ToolResponse;
   assert.equal(explained.result.isError, undefined);
   assert.equal(await store.get("pg:budget:u1:2026-09-04"), null);
+});
+
+test("a commit that loses the race for the last budget unit is a refusal, not an allowance", async () => {
+  const policy = { specVersion: "1.0.0", checks: [{ id: "consent" }, { id: "dailyBudget", limit: 1 }] };
+  const store = new MemoryStore();
+  const gate = createGate({ policy, store });
+  const input = { user: { id: "u1", consent: true }, candidate: { id: "c1", type: "reminder" }, now: new Date("2026-09-04T09:00:00Z") };
+  // A second worker evaluates and commits between this call's evaluate and its commit, taking the last unit.
+  const racing: Gate = {
+    ...gate,
+    commit: async (decision, at) => {
+      const rival = await gate.evaluate(input);
+      await gate.commit(rival, input);
+      return gate.commit(decision, at);
+    },
+  };
+  const handle = createMcpServer(racing, info);
+  const response = (await handle(tool(1, "decide", { user: input.user, candidate: input.candidate, now: "2026-09-04T09:00:00Z", commit: true }))) as ToolResponse;
+  assert.equal(response.result.structuredContent.allowed, false);
+  assert.equal(response.result.structuredContent.rejectedBy, "commit");
+  assert.equal(response.result.structuredContent.committed, false);
+  assert.equal(response.result.structuredContent.reason, "a budget was exhausted at commit");
 });

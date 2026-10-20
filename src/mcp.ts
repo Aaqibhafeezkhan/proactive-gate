@@ -106,8 +106,15 @@ export function createMcpServer(gate: Gate, info: { name: string; version: strin
       const input = parseInput(args);
       const decision = await gate.evaluate(input);
       if (name === "explain") return toolResult({ decision: decisionToJson(decision), ...(explain(decision) as unknown as Record<string, Json>) });
-      const committed = args.commit === true && decision.allowed ? await gate.commit(decision, { ...input, now: decision.evaluatedAt }) : undefined;
-      return toolResult({ ...decisionToJson(decision), ...(committed === undefined ? {} : { committed }) });
+      if (args.commit !== true || !decision.allowed) return toolResult(decisionToJson(decision));
+      const committed = await gate.commit(decision, { ...input, now: decision.evaluatedAt });
+      if (!committed) {
+        // A concurrent delivery took the last unit between evaluate and commit: refuse, as replay does.
+        decision.allowed = false;
+        decision.rejectedBy = "commit";
+        decision.reason = "a budget was exhausted at commit";
+      }
+      return toolResult({ ...decisionToJson(decision), committed });
     } catch (error) {
       return toolResult({ error: error instanceof Error ? error.message : String(error) }, true);
     }
