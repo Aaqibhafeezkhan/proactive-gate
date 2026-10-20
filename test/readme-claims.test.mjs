@@ -103,3 +103,44 @@ test("no claim about a tool is made for a row ours loses", () => {
   // The README may say "better", "faster" or "more accurate" only about rows ours wins; today it says none of them.
   assert.ok(!/\b(better than|more accurate than|beats|outperforms)\b/i.test(differs));
 });
+
+const page = (slug) => read(`docs/site/src/content/docs/${slug}.md`);
+
+test("each vs page states the counts COMPARISON.md computed for that tool", () => {
+  for (const [slug, tool] of [["vs-cue", "Cue"], ["vs-notifkit", "notifkit"]]) {
+    const text = page(slug);
+    const quiet = row("Quiet hours: is this instant quiet?", tool);
+    const next = row("Quiet hours: when may the message go?", tool);
+    assert.ok(text.includes(`${quiet.ours} of ${quiet.total}`), `${slug} lacks ${quiet.ours} of ${quiet.total}`);
+    assert.ok(text.includes(`${next.ours} of ${next.total}`) && text.includes(`${next.theirs} of ${next.total}`), `${slug} lacks the next-time counts`);
+    assert.ok(text.includes("docs/COMPARISON.md"));
+  }
+  const tcpa = row("US calling hours (TCPA)", "tcpa-quiet-hours");
+  const t = page("vs-tcpa-quiet-hours");
+  assert.ok(t.includes(`${tcpa.ties} of ${tcpa.total}`) && t.includes(`${tcpa.loses} state-rule cases`));
+});
+
+test("the hosted-platforms page states that nothing was measured and carries no comparison numbers", () => {
+  const t = page("vs-novu-knock-courier");
+  assert.ok(t.includes("not measured"));
+  assert.ok(!/\b\d+ of \d+\b/.test(t), "a count appears on a page whose rows were never run");
+});
+
+test("every vs page and the FAQ have a title and a description in the front matter", () => {
+  for (const slug of ["vs-cue", "vs-notifkit", "vs-tcpa-quiet-hours", "vs-novu-knock-courier", "faq"]) {
+    const front = /^---\ntitle: (.+)\ndescription: (.+)\n---\n/.exec(page(slug));
+    assert.ok(front, `${slug} lacks title and description front matter`);
+    assert.ok(front[2].length > 40 && front[2].length < 200, `${slug} description length`);
+  }
+});
+
+test("the FAQ is question and answer: at least ten questions as headings, each followed by an answer", () => {
+  const qs = [...page("faq").matchAll(/^## (.+\?)\n\n(.+)/gm)];
+  assert.ok(qs.length >= 10, `only ${qs.length} questions`);
+  for (const q of qs) assert.ok(q[2].length > 40, `answer too short for: ${q[1]}`);
+});
+
+test("start.md carries the same runnable sample as the README", () => {
+  const sample = (text) => /```js\n([\s\S]*?)```/.exec(text)[1];
+  assert.equal(sample(read("docs/site/src/content/docs/start.md")), sample(section(readme, "## First decision")));
+});

@@ -13,24 +13,42 @@ npm install proactive-gate
 
 Zero dependencies, TypeScript, Node 22 or newer. For Python see [Python](/proactive-gate/python/).
 
-```ts
-import { createGate, defaultChecks, RedisStore } from "proactive-gate";
+```js
+import { createGate, defaultChecks, MemoryStore } from "proactive-gate";
 
 const gate = createGate({
-  store: new RedisStore(redis), // MemoryStore() for one instance
+  store: new MemoryStore(),
   checks: defaultChecks({ dailyLimit: 3, quietHoursFloor: "high" }),
-  onDecision: (d) => log.info("gate", d),
 });
 
-const decision = await gate.evaluate({ user, candidate });
-if (decision.allowed && (await gate.commit(decision, { user, candidate }))) {
-  await send(decision.surfaces, candidate.payload);
-}
+const user = {
+  id: "ayse",
+  consent: true,
+  timezone: "Europe/Istanbul",
+  quietHours: { start: "22:00", end: "08:00" },
+};
+const candidate = { id: "a1", type: "reminder", priority: "normal" };
+const now = new Date("2026-09-04T00:00:00Z"); // 03:00 in Istanbul
+
+const decision = await gate.evaluate({ user, candidate, now });
+console.log(decision.allowed, decision.rejectedBy);
+console.log(decision.reason);
+console.log(decision.nextAllowedAt?.toISOString());
 ```
 
-`evaluate` runs the checks in order and stops at the first reject. `commit` is the atomic
-increment right before you send; it returns false when a concurrent delivery took the last
-unit, and it is idempotent on `decision.id`.
+It prints:
+
+```
+false quietHours
+quiet hours 22:00 to 08:00 (thu 2026-09-03) Europe/Istanbul; priority normal is below the floor (high)
+2026-09-04T05:00:00.000Z
+```
+
+`evaluate` runs the checks in order and stops at the first reject. In production, leave `now` out and
+call `gate.commit(decision, input)` right before you send: it is the atomic increment of the budget,
+it returns false when a concurrent delivery took the last unit, and it is idempotent on
+`decision.id`. Use `RedisStore`, `SqliteStore` or `PostgresStore` instead of `MemoryStore` when more
+than one process sends.
 
 ## The input
 

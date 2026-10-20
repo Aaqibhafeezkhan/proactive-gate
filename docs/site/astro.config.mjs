@@ -7,6 +7,19 @@ import { readFileSync } from "node:fs";
 /** The one sentence every surface uses; `test/category.test.mjs` checks the others against the same file. */
 const CATEGORY = readFileSync(new URL("../category-sentence.txt", import.meta.url), "utf8").trim();
 
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  name: "proactive-gate",
+  description: CATEGORY,
+  url: "https://bubblegunn.github.io/proactive-gate/",
+  codeRepository: "https://github.com/Bubblegunn/proactive-gate",
+  programmingLanguage: ["TypeScript", "Python", "Go"],
+  runtimePlatform: "Node.js 22 or newer, Python 3.11 or newer",
+  license: "https://opensource.org/license/mit",
+  author: { "@type": "Person", name: "Efe Genc", url: "https://github.com/Bubblegunn" },
+};
+
 const SITE = "https://bubblegunn.github.io/proactive-gate";
 const OG_ALT =
   "Two real decisions from the example day: candidate a1 not delivered, rejectedBy quietHours; candidate a5 delivered on push and feed after thirteen checks.";
@@ -23,6 +36,7 @@ export default defineConfig({
       // and LinkedIn all had nothing to show. The card is generated from real replay output by
       // `npm run og`, so it cannot drift into being a slogan about decisions.
       head: [
+        { tag: "script", attrs: { type: "application/ld+json" }, content: JSON.stringify(JSON_LD) },
         { tag: "meta", attrs: { property: "og:image", content: `${SITE}/og.png` } },
         { tag: "meta", attrs: { property: "og:image:width", content: "1200" } },
         { tag: "meta", attrs: { property: "og:image:height", content: "630" } },
@@ -39,6 +53,16 @@ export default defineConfig({
         { label: "Checks", slug: "checks" },
         { label: "Policy as data", slug: "policy" },
         { label: "Test your own policy", slug: "testing" },
+        { label: "FAQ", slug: "faq" },
+        {
+          label: "Compared with",
+          items: [
+            { label: "Cue", slug: "vs-cue" },
+            { label: "notifkit", slug: "vs-notifkit" },
+            { label: "tcpa-quiet-hours", slug: "vs-tcpa-quiet-hours" },
+            { label: "Novu, Knock, Courier", slug: "vs-novu-knock-courier" },
+          ],
+        },
         { label: "Presets", slug: "presets" },
         { label: "Adapters", slug: "adapters" },
         { label: "Integrations", slug: "integrations" },
