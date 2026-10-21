@@ -19,14 +19,15 @@ task. The one category sentence is in `docs/category-sentence.txt`.
 
 ## pkg.go.dev (`github.com/Bubblegunn/proactive-gate/go`)
 
-- Package synopsis: Package proactivegate is the Go implementation of proactive-gate, a library that decides whether an AI agent may message a user right now (quiet hours, daily limit, consent, snooze) and records the reason when it may not.
-- Install: `go get github.com/Bubblegunn/proactive-gate/go@v0.1.0`
+- Import path: `github.com/Bubblegunn/proactive-gate/go/proactivegate` (the package in `go/proactivegate/`).
+- Package synopsis (quoted from the doc comment at `go/proactivegate/types.go:1`): Package proactivegate is an independent Go implementation of the proactive-gate behaviour contract in spec/SPEC.md. It was written from the specification and the fixtures, not ported from the TypeScript source.
+- Module install (module path `github.com/Bubblegunn/proactive-gate/go`, tag `go/v0.1.0`, the line from `go/README.md`): `go get github.com/Bubblegunn/proactive-gate/go@v0.1.0`
 
 ## skills.sh
 
 - Name: `proactive-gate`
 - Description (quoted from `skills/proactive-gate/SKILL.md`): Before an AI agent or background job sends a message nobody asked for (a push, chat message, email, reminder or alert), put proactive-gate in front of it so quiet hours, daily caps, consent and snooze are enforced and every refusal has a reason. Use when the user asks for quiet hours, a message limit, a notification budget, or "do not message people at night" in an agent.
-- Install: `npx skills add Bubblegunn/proactive-gate`
+- Install (unverified, not checked against skills.sh): `npx skills add Bubblegunn/proactive-gate`. The command form is the one documented in https://github.com/vercel-labs/skills/blob/main/README.md. Whether skills.sh lists this repository and detects `skills/proactive-gate/SKILL.md` has not been checked.
 - Keywords: quiet hours, notification budget, proactive agent, consent, daily limit, agent skill.
 
 ## Claude Code plugin directory
