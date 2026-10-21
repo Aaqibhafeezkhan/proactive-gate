@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import * as api from "../dist/src/index.js";
 import { TOOLS } from "../dist/src/mcp.js";
 
@@ -40,7 +41,8 @@ const members = {
   presets: new Set(Object.keys(api.presets)),
 };
 const fields = new Set([...declared("types.d.ts", "UserState"), ...declared("types.d.ts", "Candidate"), ...declared("types.d.ts", "QuietWindow")]);
-const help = spawnSync(process.execPath, [new URL("../dist/src/cli.js", import.meta.url).pathname, "--help"], { encoding: "utf8" }).stdout;
+// fileURLToPath, not URL.pathname: on Windows the pathname is "/D:/…" and node cannot open it.
+const help = spawnSync(process.execPath, [fileURLToPath(new URL("../dist/src/cli.js", import.meta.url)), "--help"], { encoding: "utf8" }).stdout;
 const subcommands = new Set([...help.matchAll(/proactive-gate (\w+)/g)].map((m) => m[1]));
 const flags = new Set(help.match(/--[\w-]+/g));
 const words = new Set(["true", "false", "null", "low", "normal", "high", "critical", "reject", "defer", "summary", "checks", "preset", "id", "HH:MM"]);
@@ -71,6 +73,10 @@ function problems(text) {
   for (const [, token] of text.matchAll(/\b(explain)\(/g)) note("call", token, token in api);
   return { found, bad };
 }
+
+test("the CLI help, which lists the subcommands and flags, was read", () => {
+  assert.match(help, /^usage: proactive-gate simulate/);
+});
 
 test("every API name, option, preset, check id, subcommand and flag the skill mentions exists", () => {
   const { found, bad } = problems(skill);
