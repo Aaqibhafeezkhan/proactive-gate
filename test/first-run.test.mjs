@@ -17,8 +17,8 @@ test("the chain is three proactive-gate commands and nothing else", () => {
   for (const l of lines) assert.ok(l.startsWith(PREFIX), `not a proactive-gate command: ${l}`);
 });
 
-test("README and start.md contain the chain verbatim", () => {
-  for (const file of ["README.md", "docs/site/src/content/docs/start.md"]) {
+test("README, README.tr.md and start.md contain the chain verbatim", () => {
+  for (const file of ["README.md", "README.tr.md", "docs/site/src/content/docs/start.md"]) {
     assert.ok(read(file).includes(chain), `${file} does not contain docs/first-run.txt as one block`);
   }
 });
@@ -36,12 +36,16 @@ test("the chain runs in an empty directory, exits 0 each time, and writes the fi
     assert.ok(existsSync(join(dir, "events.jsonl")), "events.jsonl was not written");
     assert.ok(existsSync(join(dir, "proactive-gate.policy.json")), "the policy file was not written");
 
-    // The output block printed under the chain in the README is the real output of the last command.
-    const readme = read("README.md");
-    const after = readme.slice(readme.indexOf(chain) + chain.length);
-    const block = /^\s*```\n([\s\S]*?)```/.exec(after.slice(after.indexOf("```\n") + 4));
-    assert.ok(block, "no output block follows the chain in README.md");
-    assert.equal(block[1].trimEnd(), lastOut.trimEnd(), "README output block differs from the real output");
+    // The output block printed under the chain in each README is the real output of the last command.
+    for (const file of ["README.md", "README.tr.md"]) {
+      const readme = read(file);
+      const at = readme.indexOf(chain);
+      assert.ok(at >= 0, `${file} does not contain the chain`);
+      const after = readme.slice(at + chain.length);
+      const block = /^\s*```\n([\s\S]*?)```/.exec(after.slice(after.indexOf("```\n") + 4));
+      assert.ok(block, `no output block follows the chain in ${file}`);
+      assert.equal(block[1].trimEnd(), lastOut.trimEnd(), `${file} output block differs from the real output`);
+    }
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
