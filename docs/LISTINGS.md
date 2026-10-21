@@ -21,7 +21,7 @@ task. The one category sentence is in `docs/category-sentence.txt`.
 
 - Import path: `github.com/Bubblegunn/proactive-gate/go/proactivegate` (the package in `go/proactivegate/`).
 - Package synopsis (quoted from the doc comment at `go/proactivegate/types.go:1`): Package proactivegate is an independent Go implementation of the proactive-gate behaviour contract in spec/SPEC.md. It was written from the specification and the fixtures, not ported from the TypeScript source.
-- Module install (module path `github.com/Bubblegunn/proactive-gate/go`, tag `go/v0.1.0`, the line from `go/README.md`): `go get github.com/Bubblegunn/proactive-gate/go@v0.1.0`
+- Module install (module path `github.com/Bubblegunn/proactive-gate/go`, tag `go/v0.2.0`, the line from `go/README.md`): `go get github.com/Bubblegunn/proactive-gate/go@v0.2.0`
 
 ## skills.sh
 

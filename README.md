@@ -17,7 +17,7 @@ Install it in your project:
 ```
 npm install proactive-gate        # Node 22 or newer
 pip install proactive-gate        # Python 3.11 or newer
-go get github.com/Bubblegunn/proactive-gate/go@v0.1.0
+go get github.com/Bubblegunn/proactive-gate/go@v0.2.0
 ```
 
 The Python and Go packages are described in [Python](#python) and [Go](#go). The gate has [adapters](#adapters) for the Vercel AI SDK, Mastra, LangChain and OpenAI Agents, and a Claude Code hook. [Presets](#presets-platform-quotas-and-legal-limits-with-sources) hold platform quotas and legal limits.
@@ -775,7 +775,7 @@ Python 3.11 and 3.13 in CI. See [`python/README.md`](python/README.md).
 for [#16](https://github.com/Bubblegunn/proactive-gate/issues/16). The module has no dependencies
 beyond the standard library. `cd go && go test ./...` runs the same fixture suite, and
 `go run ./cmd/pg-conformance` prints pass, fail or skip per fixture. To use it as a library,
-`go get github.com/Bubblegunn/proactive-gate/go@v0.1.0` and import
+`go get github.com/Bubblegunn/proactive-gate/go@v0.2.0` and import
 `github.com/Bubblegunn/proactive-gate/go/proactivegate`; the module's versions are tagged
 `go/vX.Y.Z`, separately from the package releases. See [`go/README.md`](go/README.md) for an
 example.
@@ -821,7 +821,7 @@ package's release tags, so an implementation in any language can pin it without 
 or PyPI:
 
 ```sh
-git clone --depth 1 --branch spec/v1.4.2 https://github.com/Bubblegunn/proactive-gate
+git clone --depth 1 --branch spec/v1.5.0 https://github.com/Bubblegunn/proactive-gate
 ```
 
 The npm package also ships it, so `node_modules/proactive-gate/spec/fixtures` exists after an

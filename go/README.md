@@ -18,7 +18,7 @@ The module lives in this subdirectory, so its versions are tagged `go/vX.Y.Z`, s
 the package's `vX.Y.Z` releases and the spec's `spec/vX.Y.Z`:
 
 ```sh
-go get github.com/Bubblegunn/proactive-gate/go@v0.1.0
+go get github.com/Bubblegunn/proactive-gate/go@v0.2.0
 ```
 
 ```go
