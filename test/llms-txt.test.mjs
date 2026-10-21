@@ -9,10 +9,15 @@ const read = (p) => readFileSync(join(root, p), "utf8");
 const llms = read("llms.txt");
 const sentence = read("docs/category-sentence.txt").trim();
 
+// The export names must appear in the API section itself, not anywhere else in the file.
+const apiStart = llms.indexOf("\n## API");
+const apiSection = llms.slice(apiStart, llms.indexOf("\n## ", apiStart + 1));
+
 test("llms.txt names every value export of the main entry in code spans", () => {
   const names = Object.keys(api);
+  assert.ok(apiStart >= 0, "llms.txt has no API section");
   assert.ok(names.length >= 20, "the export list looks empty");
-  const missing = names.filter((n) => !llms.includes(`\`${n}\``));
+  const missing = names.filter((n) => !apiSection.includes(`\`${n}\``));
   assert.deepEqual(missing, [], `value exports missing from llms.txt: ${missing.join(", ")}`);
 });
 
