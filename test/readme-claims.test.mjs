@@ -47,6 +47,23 @@ test("the comparison table has the three columns and the rows COMPARISON.md comp
   assert.equal(body.size, 3);
 });
 
+// The versions COMPARISON.md pins for each tool, keyed by the name in its first column (links unwrapped).
+const pinnedRows = comparison.split("## Pinned versions")[1].split("\n## ")[0].split("\n").filter((l) => l.startsWith("| ") && !l.startsWith("| tool ") && !l.startsWith("|---"));
+const pinned = new Map(pinnedRows.map((l) => {
+  const cells = l.split("|").slice(1, -1).map((c) => c.trim());
+  return [cells[0].replace(/^\[(.+?)\]\(.+?\)$/, "$1"), cells[1]];
+}));
+
+test("the table header names each other tool at the version COMPARISON.md pins", () => {
+  for (const tool of ["Cue", "notifkit", "tcpa-quiet-hours"]) {
+    const version = pinned.get(tool);
+    assert.ok(version, `COMPARISON.md pins no version for ${tool}`);
+    const h = header.find((x) => x.startsWith(tool));
+    assert.ok(h, `the README table has no ${tool} column`);
+    assert.ok(h.includes(` ${version}`), `the ${tool} column reads "${h}", not ${version}`);
+  }
+});
+
 test("the quiet-hours rows state each tool's count per cell", () => {
   const instant = "Quiet hours: is this instant quiet?";
   const next = "Quiet hours: when may the message go?";
