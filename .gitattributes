@@ -1,0 +1,3 @@
+# Check out text files with LF on every platform: the tests read README.md, the docs pages and the
+# committed schema and compare them with LF text, and a Windows checkout with CRLF failed eleven of them.
+* text=auto eol=lf
