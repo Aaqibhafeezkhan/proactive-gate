@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "proactive-gate"
-version = "0.8.2"
+version = "0.9.0"
 description = "proactive-gate is a library that decides whether an AI agent may message a user right now (quiet hours, daily limit, consent, snooze) and records the reason when it may not."
 readme = "README.md"
 requires-python = ">=3.11"

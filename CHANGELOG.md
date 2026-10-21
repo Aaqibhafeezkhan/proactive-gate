@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.0
+## 0.9.0 (2026-10-21)
 
 **A denied decision can say when to ask again.** A decision that quiet hours, a snooze or a budget refused now carries `nextAllowedAt`, the earliest instant that check would stop refusing, in TypeScript (`nextAllowedAt`), Python (`next_allowed_at`) and Go (`NextAllowedAt`). It is a lower bound: the next check can still refuse then, so the caller evaluates again. The spec moves to 1.5.0 and the `hold/*` fixtures cover each source, including the hour a daylight-saving change skips and the hour it repeats; all three implementations pass 68 of 68 fixtures with no skips. `examples/hold-queue.mjs` is a small in-memory queue that waits for `nextAllowedAt`. The Go module is @LouisDeconinck's work (#41); this release carries his implementation up to spec 1.5.0, and `go get github.com/Bubblegunn/proactive-gate/go@v0.1.0` resolves because the `go/v0.1.0` tag is on origin.
 
