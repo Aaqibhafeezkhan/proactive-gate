@@ -60,7 +60,7 @@ git tag go/v0.1.0 -m "go module 0.1.0" && git push origin go/v0.1.0
 ```
 
 Maintainers only, for the same ruleset reason. After the push, `go get
-github.com/Bubblegunn/proactive-gate/go@v0.1.0` resolves through proxy.golang.org, and
+github.com/Bubblegunn/proactive-gate/go@vX.Y.Z` resolves through proxy.golang.org, and
 pkg.go.dev lists the version once someone has fetched it. A tag is never moved or deleted once
 pushed: the checksum database records it, so a changed tag fails verification for everyone who
 fetched the old one. Fix forward with the next patch version.

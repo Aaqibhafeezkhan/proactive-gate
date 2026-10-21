@@ -2,7 +2,7 @@
 
 > proactive-gate is a library that decides whether an AI agent may message a user right now (quiet hours, daily limit, consent, snooze) and records the reason when it may not.
 
-Install: `npm install proactive-gate` (Node 22+), `pip install proactive-gate` (Python 3.11+), or `go get github.com/Bubblegunn/proactive-gate/go@v0.1.0`. Licence: MIT. Repository: https://github.com/Bubblegunn/proactive-gate
+Install: `npm install proactive-gate` (Node 22+), `pip install proactive-gate` (Python 3.11+), or `go get github.com/Bubblegunn/proactive-gate/go@v0.2.0`. Claude Code plugin: `/plugin install proactive-gate --marketplace Bubblegunn/proactive-gate`. Licence: MIT. Repository: https://github.com/Bubblegunn/proactive-gate
 npm: https://www.npmjs.com/package/proactive-gate
 PyPI: https://pypi.org/project/proactive-gate/
 Docs and playground: https://bubblegunn.github.io/proactive-gate/ (llms-full.txt is served there too)

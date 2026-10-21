@@ -20,6 +20,12 @@ pip install proactive-gate        # Python 3.11 or newer
 go get github.com/Bubblegunn/proactive-gate/go@v0.2.0
 ```
 
+To have Claude Code put the gate in front of an agent's messages for you, install the skill as a plugin (Claude Code 2.1.275 or later):
+
+```
+/plugin install proactive-gate --marketplace Bubblegunn/proactive-gate
+```
+
 The Python and Go packages are described in [Python](#python) and [Go](#go). The gate has [adapters](#adapters) for the Vercel AI SDK, Mastra, LangChain and OpenAI Agents, and a Claude Code hook. [Presets](#presets-platform-quotas-and-legal-limits-with-sources) hold platform quotas and legal limits.
 
 [Docs](https://bubblegunn.github.io/proactive-gate/) · [Playground](https://bubblegunn.github.io/proactive-gate/playground/) · [FAQ](https://bubblegunn.github.io/proactive-gate/faq/) · English | [Türkçe](README.tr.md)

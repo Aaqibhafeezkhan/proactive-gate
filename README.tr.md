@@ -19,7 +19,13 @@ Projenize kurun:
 ```
 npm install proactive-gate        # Node 22 veya üstü
 pip install proactive-gate        # Python 3.11 veya üstü
-go get github.com/Bubblegunn/proactive-gate/go@v0.1.0
+go get github.com/Bubblegunn/proactive-gate/go@v0.2.0
+```
+
+Claude Code'un bir ajanın mesajlarının önüne gate'i sizin yerinize koymasını isterseniz, skill'i eklenti olarak kurun (Claude Code 2.1.275 veya sonrası):
+
+```
+/plugin install proactive-gate --marketplace Bubblegunn/proactive-gate
 ```
 
 Gate'in Vercel AI SDK, Mastra, LangChain ve OpenAI Agents için adaptörleri ve bir Claude Code kancası var. Hazır paketler platform kotalarını ve yasal sınırları tutar.
