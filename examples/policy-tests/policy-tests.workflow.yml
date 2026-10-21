@@ -1,3 +1,4 @@
+# Run `npm i -D proactive-gate` first so `npx --no` finds the installed copy.
 name: policy-tests
 on: [push, pull_request]
 permissions:

@@ -39,9 +39,10 @@ and `reason_pattern` (a regular expression the reason must match). The full tabl
 
 ## Run it in GitHub Actions
 
-Put your fixtures in `tests/policy/` and add this workflow:
+Put your fixtures in `tests/policy/` and add this workflow. Install the package first with `npm i -D proactive-gate`, so `npx --no` finds the installed copy.
 
 ```yaml
+# Run `npm i -D proactive-gate` first so `npx --no` finds the installed copy.
 name: policy-tests
 on: [push, pull_request]
 permissions:
