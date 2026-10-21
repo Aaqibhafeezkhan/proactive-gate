@@ -19,6 +19,11 @@ named `geo-answers-YYYY-MM-DD.md` and link it from the table.
 
 | Date | Model | Prompt (1 to 5) | Named | Position | Link | Answer file |
 |---|---|---|---|---|---|---|
+| 2026-10-21 | Perplexity (signed out, default model) | 1 | no |  | no | [geo-answers-2026-10-21.md](geo-answers-2026-10-21.md) |
+| 2026-10-21 | Perplexity (signed out, default model) | 2 | no |  | no | [geo-answers-2026-10-21.md](geo-answers-2026-10-21.md) |
+| 2026-10-21 | Perplexity (signed out, default model) | 3 | no |  | no | [geo-answers-2026-10-21.md](geo-answers-2026-10-21.md) |
+| 2026-10-21 | Perplexity (signed out, default model) | 4 | no |  | no | [geo-answers-2026-10-21.md](geo-answers-2026-10-21.md) |
+| 2026-10-21 | Perplexity (signed out, default model) | 5 | no |  | no | [geo-answers-2026-10-21.md](geo-answers-2026-10-21.md) |
 
 ## 14 days after launch
 
