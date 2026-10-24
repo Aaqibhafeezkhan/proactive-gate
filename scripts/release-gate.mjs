@@ -14,6 +14,7 @@ import { extractPackedFiles } from "./npm-pack.mjs";
 const root = process.cwd();
 const read = (f) => readFileSync(join(root, f), "utf8");
 const has = (f) => existsSync(join(root, f));
+const PLUGIN_JSON = has("plugin/.claude-plugin/plugin.json") ? "plugin/.claude-plugin/plugin.json" : ".claude-plugin/plugin.json";
 const problems = [];
 
 const pkg = JSON.parse(read("package.json"));
@@ -91,9 +92,9 @@ if (pkg.engines?.node && has(ciPath)) {
     problems.push(`package.json engines.node is ${pkg.engines.node}, the lowest Node in the ${ciPath} matrix is ${lowest}`);
 }
 
-if (has(".claude-plugin/plugin.json")) {
-  const v = JSON.parse(read(".claude-plugin/plugin.json")).version;
-  if (v !== version) problems.push(`.claude-plugin/plugin.json version is ${v}, package.json is ${version}`);
+if (has(PLUGIN_JSON)) {
+  const v = JSON.parse(read(PLUGIN_JSON)).version;
+  if (v !== version) problems.push(`${PLUGIN_JSON} version is ${v}, package.json is ${version}`);
 }
 
 const packed = JSON.parse(

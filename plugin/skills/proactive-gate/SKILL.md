@@ -1,6 +1,7 @@
 ---
 name: proactive-gate
 description: Before an AI agent or background job sends a message nobody asked for (a push, chat message, email, reminder or alert), put proactive-gate in front of it so quiet hours, daily caps, consent and snooze are enforced and every refusal has a reason. Use when the user asks for quiet hours, a message limit, a notification budget, or "do not message people at night" in an agent.
+license: MIT
 ---
 
 # proactive-gate

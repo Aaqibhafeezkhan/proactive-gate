@@ -8,8 +8,8 @@ const read = (p) => readFileSync(join(root, p), "utf8");
 const listings = read("docs/LISTINGS.md");
 const sentence = read("docs/category-sentence.txt").trim();
 const pkg = JSON.parse(read("package.json"));
-const skill = /^description: (.+)$/m.exec(read("skills/proactive-gate/SKILL.md"))[1];
-const plugin = JSON.parse(read(".claude-plugin/plugin.json"));
+const skill = /^description: (.+)$/m.exec(read("plugin/skills/proactive-gate/SKILL.md"))[1];
+const plugin = JSON.parse(read("plugin/.claude-plugin/plugin.json"));
 
 test("the npm listing matches package.json", () => {
   assert.ok(listings.includes(sentence));

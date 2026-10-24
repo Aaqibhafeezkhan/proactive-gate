@@ -43,7 +43,8 @@
   "files": [
     "dist/src",
     "spec",
-    "skills",
+    "plugin/skills",
+    "plugin/.claude-plugin",
     ".claude-plugin",
     "README.md",
     "LICENSE"

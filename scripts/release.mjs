@@ -31,6 +31,7 @@ const sh = (cmd, a, opts = {}) => {
 };
 const read = (f) => readFileSync(join(root, f), "utf8");
 const has = (f) => existsSync(join(root, f));
+const PLUGIN_JSON = has("plugin/.claude-plugin/plugin.json") ? "plugin/.claude-plugin/plugin.json" : ".claude-plugin/plugin.json";
 
 /** Every python/src/<package>/__init__.py, for repositories that ship a Python sibling. */
 const pythonInits = () =>
@@ -102,7 +103,7 @@ if (has("CITATION.cff")) plan.push(`CITATION.cff: version ${target}, date-releas
 if (has("action.yml") && /^  version:\n/m.test(read("action.yml"))) plan.push(`action.yml: version input default ${target}`);
 if (has("python/pyproject.toml")) plan.push(`python/pyproject.toml: version ${target}`);
 for (const init of pythonInits()) plan.push(`${init}: __version__ ${target}`);
-if (has(".claude-plugin/plugin.json")) plan.push(`.claude-plugin/plugin.json: version ${target}`);
+if (has(PLUGIN_JSON)) plan.push(`${PLUGIN_JSON}: version ${target}`);
 const readmes = readdirSync(root).filter((f) => /^README(\.[a-zA-Z-]+)?\.md$/.test(f));
 const pinned = new RegExp(`Bubblegunn/${name}@v\\d+\\.\\d+\\.\\d+`);
 const pinnedAll = new RegExp(pinned.source, "g");
@@ -136,7 +137,7 @@ if (has("action.yml") && /^  version:\n/m.test(read("action.yml"))) {
 }
 if (has("python/pyproject.toml")) replaceIn("python/pyproject.toml", /^version = ".*"$/m, `version = "${target}"`, "version");
 for (const init of pythonInits()) replaceIn(init, /^__version__ = ".*"$/m, `__version__ = "${target}"`, "__version__");
-if (has(".claude-plugin/plugin.json")) replaceIn(".claude-plugin/plugin.json", /"version": "[^"]*"/, `"version": "${target}"`, "version");
+if (has(PLUGIN_JSON)) replaceIn(PLUGIN_JSON, /"version": "[^"]*"/, `"version": "${target}"`, "version");
 for (const f of readmes) {
   const text = read(f);
   if (pinned.test(text)) writeFileSync(join(root, f), text.replace(pinnedAll, `Bubblegunn/${name}@${tag}`));

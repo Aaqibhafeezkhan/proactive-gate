@@ -94,8 +94,8 @@ claude plugin marketplace add Bubblegunn/proactive-gate
 claude plugin install proactive-gate@proactive-gate
 ```
 
-The skill is `skills/proactive-gate/SKILL.md`, in the repository and in the npm package, so an
-agent that reads skill folders can use it from `node_modules/proactive-gate/skills/proactive-gate`.
+The skill is `plugin/skills/proactive-gate/SKILL.md`, in the repository and in the npm package, so an
+agent that reads skill folders can use it from `node_modules/proactive-gate/plugin/skills/proactive-gate`.
 A test checks every API name, option, preset, check id, subcommand and flag in it against what
 the package exports, so the skill cannot describe a function that no longer exists.
 

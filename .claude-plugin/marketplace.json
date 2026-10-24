@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "proactive-gate",
-      "source": "./",
+      "source": "./plugin",
       "description": "Before the agent sends a message nobody asked for, it asks proactive-gate whether it may, and acts on the answer: send, hold until nextAllowedAt, or drop with a reason.",
       "category": "development",
       "keywords": ["proactive-ai", "quiet-hours", "notification-budget", "consent", "agents"]

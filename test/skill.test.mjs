@@ -9,21 +9,21 @@ import { TOOLS } from "../dist/src/mcp.js";
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const json = (path) => JSON.parse(read(path));
 const pkg = json("package.json");
-const skill = read("skills/proactive-gate/SKILL.md");
+const skill = read("plugin/skills/proactive-gate/SKILL.md");
 
 test("the plugin manifest, marketplace entry and skill agree with the package", () => {
-  const plugin = json(".claude-plugin/plugin.json");
+  const plugin = json("plugin/.claude-plugin/plugin.json");
   assert.equal(plugin.name, "proactive-gate");
   assert.equal(plugin.version, pkg.version, "release-gate compares these too");
   assert.equal(plugin.skills, "./skills");
   const market = json(".claude-plugin/marketplace.json");
   assert.deepEqual(market.plugins.map((p) => p.name), ["proactive-gate"]);
-  assert.equal(market.plugins[0].source, "./");
-  const front = /^---\nname: (.+)\ndescription: (.+)\n---\n/.exec(skill);
+  assert.equal(market.plugins[0].source, "./plugin");
+  const front = /^---\nname: (.+)\ndescription: (.+)\nlicense: MIT\n---\n/.exec(skill);
   assert.ok(front, "SKILL.md starts with name and description front matter");
   assert.equal(front[1], "proactive-gate", "the name is the directory name");
   assert.ok(front[2].length > 60 && front[2].length <= 1024, "description says when to use it, within the 1024-character limit");
-  assert.ok(pkg.files.includes("skills") && pkg.files.includes(".claude-plugin"), "both ship in the npm package");
+  assert.ok(pkg.files.includes("plugin/skills") && pkg.files.includes("plugin/.claude-plugin") && pkg.files.includes(".claude-plugin"), "both ship in the npm package");
 });
 
 // ---- every API name the skill uses must exist ----------------------------------------------
