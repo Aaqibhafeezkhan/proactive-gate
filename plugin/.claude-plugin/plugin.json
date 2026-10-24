@@ -5,7 +5,7 @@
   "description": "Teaches a coding agent to put quiet hours, message budgets, consent and snooze in front of any message an AI agent sends on its own.",
   "author": {
     "name": "Efe Genc",
-    "url": "https://efe-genc-portfolio.vercel.app"
+    "url": "https://efegenc.me"
   },
   "homepage": "https://bubblegunn.github.io/proactive-gate/",
   "repository": "https://github.com/Bubblegunn/proactive-gate",

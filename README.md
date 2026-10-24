@@ -943,12 +943,12 @@ inferred from what happens to be in it.
 
 ## Where it comes from
 
-This is the delivery gate from [LILA](https://efe-genc-portfolio.vercel.app/projects/lila/),
+This is the delivery gate from [LILA](https://efegenc.me/projects/lila/),
 a proactive assistant I have been building alone since February 2026, extracted and
 made framework-agnostic. The order of the twelve checks, the trust ramp, the
 three-in-thirty cooldown and the fail-open budget are all decisions that were made
 in production and defended in
-[The hardest part of a proactive assistant is knowing when not to speak](https://efe-genc-portfolio.vercel.app/writing/knowing-when-not-to-speak/).
+[The hardest part of a proactive assistant is knowing when not to speak](https://efegenc.me/writing/knowing-when-not-to-speak/).
 Tian Pan's
 [notification budget](https://tianpan.co/blog/2026-05-13-background-agents-notification-budget-attention-economy)
 essay argues the same case from the product side and suggests a daily cap of three

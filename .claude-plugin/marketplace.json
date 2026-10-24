@@ -2,7 +2,7 @@
   "name": "proactive-gate",
   "owner": {
     "name": "Efe Genc",
-    "url": "https://efe-genc-portfolio.vercel.app"
+    "url": "https://efegenc.me"
   },
   "description": "A skill that makes an AI agent check quiet hours, message budgets and consent before it messages a person.",
   "plugins": [

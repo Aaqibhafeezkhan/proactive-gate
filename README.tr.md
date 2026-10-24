@@ -639,10 +639,10 @@ ayarlı olup olmadığını söyleyen üç sayıdır.
 ## Nereden geliyor
 
 Bu, Şubat 2026'dan beri tek başıma geliştirdiğim proaktif asistan
-[LILA](https://efe-genc-portfolio.vercel.app/projects/lila/)'nın teslim kapısıdır; çıkarılıp
+[LILA](https://efegenc.me/projects/lila/)'nın teslim kapısıdır; çıkarılıp
 framework'ten bağımsız hâle getirildi. On iki kontrolün sırası, güven rampası, otuzda üç
 soğuması ve açık başarısız olan bütçe, üretimde verilmiş ve
-[The hardest part of a proactive assistant is knowing when not to speak](https://efe-genc-portfolio.vercel.app/writing/knowing-when-not-to-speak/)
+[The hardest part of a proactive assistant is knowing when not to speak](https://efegenc.me/writing/knowing-when-not-to-speak/)
 yazısında savunulmuş kararlardır. Tian Pan'ın
 [bildirim bütçesi](https://tianpan.co/blog/2026-05-13-background-agents-notification-budget-attention-economy)
 yazısı aynı davayı ürün tarafından savunur ve günde üç ile beş arası bir tavan önerir;
