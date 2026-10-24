@@ -1,5 +1,6 @@
 {
   "name": "proactive-gate",
+  "displayName": "proactive-gate",
   "version": "0.9.0",
   "description": "Teaches a coding agent to put quiet hours, message budgets, consent and snooze in front of any message an AI agent sends on its own.",
   "author": {
@@ -18,5 +19,9 @@
     "agents",
     "skills"
   ],
+  "documentationUrl": "https://github.com/Bubblegunn/proactive-gate#readme",
+  "supportUrl": "https://github.com/Bubblegunn/proactive-gate/issues",
+  "privacyPolicyUrl": "https://github.com/Bubblegunn/proactive-gate/blob/main/PRIVACY.md",
+  "termsOfServiceUrl": "https://github.com/Bubblegunn/proactive-gate/blob/main/LICENSE",
   "skills": "./skills"
 }
