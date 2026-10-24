@@ -1,4 +1,5 @@
 .claude-plugin/marketplace.json
+plugin/.claude-plugin/icon.png
 plugin/.claude-plugin/plugin.json
 LICENSE
 README.md
