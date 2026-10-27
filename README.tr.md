@@ -34,6 +34,8 @@ Gate'in Vercel AI SDK, Mastra, LangChain ve OpenAI Agents için adaptörleri ve 
 
 <p>
   <img src="https://img.shields.io/npm/v/proactive-gate?style=flat-square&color=111111&label=npm" alt="npm">
+  <a href="https://www.npmjs.com/package/proactive-gate"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FBubblegunn%2Fproactive-gate%2Fmetrics%2Fbadges%2Fnpm-week.json&style=flat-square" alt="npm downloads per week"></a>
+  <a href="https://pypi.org/project/proactive-gate/"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FBubblegunn%2Fproactive-gate%2Fmetrics%2Fbadges%2Fpypi-week.json&style=flat-square" alt="PyPI downloads per week"></a>
   <img src="https://img.shields.io/github/actions/workflow/status/Bubblegunn/proactive-gate/ci.yml?style=flat-square&color=111111&label=ci" alt="ci">
   <img src="https://img.shields.io/bundlephobia/minzip/proactive-gate?style=flat-square&color=111111" alt="minzipped size">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT">
