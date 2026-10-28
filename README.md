@@ -30,6 +30,8 @@ The Python and Go packages are described in [Python](#python) and [Go](#go). The
 
 [Docs](https://bubblegunn.github.io/proactive-gate/) · [Playground](https://bubblegunn.github.io/proactive-gate/playground/) · [FAQ](https://bubblegunn.github.io/proactive-gate/faq/) · English | [Türkçe](README.tr.md)
 
+**Who uses this:** [Adopters](ADOPTERS.md) · Run it in production? [Tell us how](https://github.com/Bubblegunn/proactive-gate/issues/new?template=adopter.yml).
+
 <p>
   <img src="https://img.shields.io/npm/v/proactive-gate?style=flat-square&color=111111&label=npm" alt="npm">
   <a href="https://www.npmjs.com/package/proactive-gate"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FBubblegunn%2Fproactive-gate%2Fmetrics%2Fbadges%2Fnpm-week.json&style=flat-square" alt="npm downloads per week"></a>
